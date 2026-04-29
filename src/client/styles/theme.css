@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+@theme {
+	/* Fonts */
+	--font-sans: "Inter Variable", "Inter", system-ui, sans-serif;
+	--font-mono:
+		"JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+
+	/* Typography scale */
+	--text-very-small: 12px;
+	--text-small: 13px;
+	--text-medium: 15px;
+	--text-large: 20px;
+	--text-very-large: 30px;
+
+	/* Dark theme (default) — sourced from Actual Budget dark.ts */
+	--color-page-bg: #080811;
+	--color-page-bg-modal: #141520;
+	--color-page-text: #d9e2ec;
+	--color-page-text-light: #9fb3c8;
+	--color-page-text-subdued: #627d98;
+	--color-page-text-dark: #e8ecf0;
+
+	--color-card-bg: #141520;
+	--color-card-border: #9446ed;
+
+	--color-table-bg: #243b53;
+	--color-table-row-hover: #334e68;
+	--color-table-header-bg: #334e68;
+	--color-table-header-text: #9fb3c8;
+	--color-table-border: #486581;
+	--color-table-border-selected: #9446ed;
+
+	--color-sidebar-bg: #102a43;
+	--color-sidebar-text: #d9e2ec;
+	--color-sidebar-text-selected: #b990ff;
+	--color-sidebar-item-hover: #334e68;
+
+	--color-btn-primary-bg: #9446ed;
+	--color-btn-primary-bg-hover: #7a0ecc;
+	--color-btn-primary-text: #ffffff;
+	--color-btn-normal-bg: #243b53;
+	--color-btn-normal-bg-hover: #486581;
+	--color-btn-normal-text: #d9e2ec;
+	--color-btn-normal-border: #9fb3c8;
+
+	--color-number-positive: #65d6ad;
+	--color-number-negative: #ff9b9b;
+	--color-number-neutral: #627d98;
+
+	--color-notice-bg: #0c6b58;
+	--color-notice-text: #65d6ad;
+	--color-notice-border: #0c6b58;
+	--color-warning-bg: #87540d;
+	--color-warning-text: #f5e35d;
+	--color-warning-border: #27ab83;
+	--color-error-bg: #8a041a;
+	--color-error-text: #ff9b9b;
+	--color-error-border: #e12d39;
+
+	--color-form-input-bg: #243b53;
+	--color-form-input-bg-selected: #334e68;
+	--color-form-input-border: #486581;
+	--color-form-input-border-selected: #9446ed;
+	--color-form-input-text: #d9e2ec;
+	--color-form-input-shadow-selected: #b990ff;
+
+	--color-modal-bg: #141520;
+	--color-modal-border: #486581;
+
+	--color-tooltip-bg: #243b53;
+	--color-tooltip-border: #334e68;
+	--color-tooltip-text: #e8ecf0;
+
+	--color-checkbox-bg-selected: #a368fc;
+	--color-checkbox-border-selected: #a368fc;
+	--color-toggle-bg: #242733;
+	--color-toggle-bg-selected: #a368fc;
+
+	--color-overlay-bg: rgba(0, 0, 0, 0.3);
+
+	/* Status colors */
+	--color-status-ok: #65d6ad;
+	--color-status-warn: #f5e35d;
+	--color-status-err: #ff9b9b;
+	--color-status-pending: #9446ed;
+	--color-status-idle: #486581;
+
+	/* Spacing */
+	--radius-card: 6px;
+	--radius-btn: 4px;
+	--radius-pill: 3px;
+	--spacing-page-x: 28px;
+	--spacing-page-y: 24px;
+	--spacing-card: 24px;
+	--spacing-card-gap: 16px;
+
+	/* Layout */
+	--topbar-height: 28px;
+	--sidebar-width: 220px;
+}
+
+/* Light theme overrides */
+[data-theme="light"] {
+	--color-page-bg: #e8ecf0;
+	--color-page-bg-modal: #ffffff;
+	--color-page-text: #272630;
+	--color-page-text-light: #627d98;
+	--color-page-text-subdued: #9fb3c8;
+	--color-page-text-dark: #243b53;
+
+	--color-card-bg: #ffffff;
+	--color-card-border: #690cb0;
+
+	--color-table-bg: #ffffff;
+	--color-table-row-hover: #f7fafc;
+	--color-table-header-bg: #e8ecf0;
+	--color-table-header-text: #486581;
+	--color-table-border: #bcccdc;
+	--color-table-border-selected: #9446ed;
+
+	--color-sidebar-bg: #102a43;
+	--color-sidebar-text: #d9e2ec;
+	--color-sidebar-text-selected: #b990ff;
+	--color-sidebar-item-hover: #334e68;
+
+	--color-btn-primary-bg: #9446ed;
+	--color-btn-primary-bg-hover: #7a0ecc;
+	--color-btn-normal-bg: #ffffff;
+	--color-btn-normal-bg-hover: #bcccdc;
+	--color-btn-normal-text: #272630;
+	--color-btn-normal-border: #829ab1;
+
+	--color-form-input-bg: #ffffff;
+	--color-form-input-bg-selected: #e8ecf0;
+	--color-form-input-border: #bcccdc;
+	--color-form-input-text: #272630;
+
+	--color-modal-bg: #ffffff;
+	--color-modal-border: #bcccdc;
+}
+
+/* Midnight theme overrides */
+[data-theme="midnight"] {
+	--color-page-bg: #373b4a;
+	--color-page-bg-modal: #242733;
+	--color-page-text: #d4dae0;
+	--color-page-text-light: #bdc5cf;
+	--color-page-text-subdued: #747c8b;
+	--color-page-text-dark: #d4dae0;
+
+	--color-card-bg: #242733;
+	--color-card-border: #a368fc;
+
+	--color-table-bg: #242733;
+	--color-table-row-hover: #4d5768;
+	--color-table-header-bg: #4d5768;
+	--color-table-header-text: #bdc5cf;
+	--color-table-border: #4d5768;
+	--color-table-border-selected: #a368fc;
+
+	--color-sidebar-bg: #080811;
+	--color-sidebar-text: #d4dae0;
+	--color-sidebar-text-selected: #b990ff;
+	--color-sidebar-item-hover: #4d5768;
+
+	--color-btn-primary-bg: #9446ed;
+	--color-btn-primary-bg-hover: #7a0ecc;
+	--color-btn-normal-bg: #242733;
+	--color-btn-normal-bg-hover: #4d5768;
+	--color-btn-normal-text: #d4dae0;
+	--color-btn-normal-border: #747c8b;
+
+	--color-form-input-bg: #242733;
+	--color-form-input-bg-selected: #373b4a;
+	--color-form-input-border: #4d5768;
+	--color-form-input-text: #d4dae0;
+
+	--color-modal-bg: #242733;
+	--color-modal-border: #4d5768;
+}
+
+/* Global base styles */
+html {
+	font-family: var(--font-sans);
+	background-color: var(--color-page-bg);
+	color: var(--color-page-text);
+	font-size: 14px;
+}
+
+/* Tabular numbers on all mono elements */
+.font-mono,
+[class*="mono"] {
+	font-feature-settings: "tnum", "ss01", "ss04";
+}

@@ -19,11 +19,15 @@
 		"db:studio": "drizzle-kit studio"
 	},
 	"dependencies": {
+		"@fontsource-variable/inter": "^5.2.8",
+		"@fontsource-variable/jetbrains-mono": "^5.2.8",
+		"@tailwindcss/vite": "^4.2.4",
 		"better-sqlite3": "^12.9.0",
 		"drizzle-orm": "^0.45.2",
 		"express": "^5.2.1",
 		"react": "^19.2.5",
 		"react-dom": "^19.2.5",
+		"tailwindcss": "^4.2.4",
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
