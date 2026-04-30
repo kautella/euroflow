@@ -154,4 +154,21 @@ export const Icons = {
 			<path d="m21 21-4.3-4.3" />
 		</svg>
 	),
+	Eye: ({ size = 16 }: SvgProps) => (
+		<svg
+			width={size}
+			height={size}
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="1.6"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			aria-hidden="true"
+			style={{ flexShrink: 0 }}
+		>
+			<path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8S2 12 2 12z" />
+			<circle cx="12" cy="12" r="3" />
+		</svg>
+	),
 };

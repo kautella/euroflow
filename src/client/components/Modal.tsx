@@ -20,7 +20,7 @@ export function ModalShell({
 					style={{ backdropFilter: "blur(2px)" }}
 				/>
 				<Dialog.Content
-					className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-modal-bg border border-modal-border rounded-card overflow-auto focus:outline-none"
+					className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-modal-bg border border-modal-border rounded-[6px] overflow-auto focus:outline-none"
 					style={{
 						width,
 						maxHeight: "90vh",
@@ -65,14 +65,14 @@ export function ConfirmModal({
 				<button
 					type="button"
 					onClick={onCancel}
-					className="px-3 py-1.5 rounded-btn text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+					className="px-3 py-1.5 rounded-[4px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 				>
 					Cancel
 				</button>
 				<button
 					type="button"
 					onClick={onConfirm}
-					className={`px-3 py-1.5 rounded-btn text-small ${
+					className={`px-3 py-1.5 rounded-[4px] text-small ${
 						danger
 							? "bg-error-bg text-error-text border border-error-border hover:opacity-80"
 							: "bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"

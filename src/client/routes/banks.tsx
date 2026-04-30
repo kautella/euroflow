@@ -18,8 +18,7 @@ export const Route = createFileRoute("/banks")({
 });
 
 function ExpiryPill({ days }: { days: number }) {
-	const status =
-		days < 0 ? "err" : days < 7 ? "err" : days < 21 ? "warn" : "ok";
+	const status = days < 0 ? "err" : days < 21 ? "warn" : "ok";
 	const label = days < 0 ? "EXPIRED" : `${days}D LEFT`;
 	return <StatusPill status={status} label={label} />;
 }
@@ -262,7 +261,7 @@ function OAuthModal({
 									</div>
 								</div>
 								<Icons.Arrow size={14} />
-								<select className="w-full px-2 py-1.5 rounded-btn text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected">
+								<select className="w-full px-2 py-1.5 rounded-[4px] text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected">
 									<option>{a.mapping}</option>
 									<option>Main checking</option>
 									<option>Savings</option>
@@ -288,7 +287,7 @@ function OAuthModal({
 					<button
 						type="button"
 						onClick={onClose}
-						className="px-3 py-1.5 rounded-btn text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+						className="px-3 py-1.5 rounded-[4px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 					>
 						Cancel
 					</button>
@@ -296,7 +295,7 @@ function OAuthModal({
 						<button
 							type="button"
 							onClick={() => setState((s) => s && { ...s, step: 2 })}
-							className="px-3 py-1.5 rounded-btn text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+							className="px-3 py-1.5 rounded-[4px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
 						>
 							Continue at bank →
 						</button>
@@ -305,7 +304,7 @@ function OAuthModal({
 						<button
 							type="button"
 							onClick={onClose}
-							className="px-3 py-1.5 rounded-btn text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+							className="px-3 py-1.5 rounded-[4px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
 						>
 							Finish
 						</button>
@@ -384,15 +383,15 @@ function BanksPage() {
 		.filter((a) => a.expiresInDays < 14).length;
 
 	return (
-		<div className="p-page">
+		<div className="px-7 py-6">
 			{/* Page header */}
-			<div className="flex items-start justify-between mb-5">
+			<div className="flex items-start justify-between pb-5 mb-5 border-b border-table-border">
 				<div>
 					<div
 						className="font-mono text-page-text-subdued mb-1"
 						style={{ fontSize: 11, letterSpacing: "0.06em" }}
 					>
-						/ Banks
+						/ BANKS
 					</div>
 					<h1 className="text-page-text-dark font-semibold text-large">
 						Bank connections
@@ -401,7 +400,7 @@ function BanksPage() {
 			</div>
 
 			{/* eIDAS cert card */}
-			<div className="bg-card-bg border border-card-border rounded-card p-5 mb-4">
+			<div className="bg-card-bg border border-table-border rounded-[6px] p-5 mb-4">
 				<div className="flex items-center gap-4">
 					<div
 						className="flex-shrink-0 flex items-center justify-center rounded"
@@ -441,17 +440,15 @@ function BanksPage() {
 							)}
 						</div>
 					</div>
-					{!cert && (
-						<label className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-btn text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover cursor-pointer">
-							<Icons.Upload size={14} /> Upload .pem
-							<input type="file" accept=".pem,.crt,.cer" className="hidden" />
-						</label>
-					)}
+					<label className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-small cursor-pointer bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover">
+						<Icons.Upload size={14} /> {cert ? "Replace .pem" : "Upload .pem"}
+						<input type="file" accept=".pem,.crt,.cer" className="hidden" />
+					</label>
 				</div>
 			</div>
 
 			{/* Connect a new bank */}
-			<div className="bg-card-bg border border-card-border rounded-card p-5 mb-6">
+			<div className="bg-card-bg border border-table-border rounded-[6px] p-5 mb-6">
 				<h2 className="text-page-text-dark font-semibold text-small mb-1">
 					Connect a new bank
 				</h2>
@@ -464,9 +461,10 @@ function BanksPage() {
 					style={{ gridTemplateColumns: "120px 1fr" }}
 				>
 					<select
-						className="px-2 py-1.5 rounded-btn text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected"
+						className="px-2 py-1.5 rounded-[4px] text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected disabled:opacity-50"
 						value={country}
 						onChange={(e) => setCountry(e.target.value)}
+						disabled={!cert}
 					>
 						{countries.map((c) => (
 							<option key={c} value={c}>
@@ -479,7 +477,7 @@ function BanksPage() {
 							<Icons.Search size={14} />
 						</span>
 						<input
-							className="w-full pl-8 pr-3 py-1.5 rounded-btn text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected disabled:opacity-50"
+							className="w-full pl-8 pr-3 py-1.5 rounded-[4px] text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected disabled:opacity-50"
 							placeholder="Bank name (e.g. N26, Revolut, ING…)"
 							value={searchQ}
 							onChange={(e) => setSearchQ(e.target.value)}
@@ -540,18 +538,6 @@ function BanksPage() {
 						))}
 					</div>
 				)}
-
-				{!cert && (
-					<div className="flex items-center gap-2 mt-3.5 px-3 py-2.5 rounded bg-warning-bg text-warning-text border border-warning-border">
-						<Icons.Lock size={14} />
-						<span
-							className="font-mono"
-							style={{ fontSize: 12, letterSpacing: "0.04em" }}
-						>
-							CERTIFICATE REQUIRED — upload a .pem before connecting banks.
-						</span>
-					</div>
-				)}
 			</div>
 
 			{/* Connected banks */}
@@ -568,96 +554,105 @@ function BanksPage() {
 				</span>
 			</div>
 
-			{connectedBankGroups.map((g) => (
-				<div
-					key={g.bank.id}
-					className="bg-card-bg border border-card-border rounded-card mb-3 overflow-hidden"
-				>
-					{/* Bank header row */}
-					<div className="flex items-center gap-3.5 px-4 py-3.5 border-b border-table-border bg-table-bg">
-						<div
-							className="flex-shrink-0 flex items-center justify-center font-mono font-bold text-white rounded"
-							style={{
-								width: 36,
-								height: 36,
-								borderRadius: 4,
-								background: g.bank.brand,
-								fontSize: 12,
-							}}
-						>
-							{g.bank.initials}
-						</div>
-						<div className="flex-1">
+			{connectedBankGroups.map((g) => {
+				const minDays = Math.min(...g.accounts.map((a) => a.expiresInDays));
+				const accentBorder =
+					minDays < 0
+						? "border-l-[4px] border-l-status-err"
+						: minDays < 21
+							? "border-l-[4px] border-l-status-warn"
+							: "";
+				return (
+					<div
+						key={g.bank.id}
+						className={`bg-card-bg border border-table-border rounded-[6px] mb-3 overflow-hidden ${accentBorder}`}
+					>
+						{/* Bank header row */}
+						<div className="flex items-center gap-3.5 px-4 py-3.5 border-b border-table-border bg-table-bg">
 							<div
-								className="text-page-text-dark font-semibold"
-								style={{ fontSize: 14 }}
+								className="flex-shrink-0 flex items-center justify-center font-mono font-bold text-white rounded"
+								style={{
+									width: 36,
+									height: 36,
+									borderRadius: 4,
+									background: g.bank.brand,
+									fontSize: 12,
+								}}
 							>
-								{g.bank.name}
+								{g.bank.initials}
 							</div>
-							<div
-								className="font-mono text-page-text-subdued"
-								style={{ fontSize: 11, letterSpacing: "0.04em" }}
+							<div className="flex-1">
+								<div
+									className={`font-semibold ${minDays < 0 ? "text-status-err" : minDays < 21 ? "text-status-warn" : "text-page-text-dark"}`}
+									style={{ fontSize: 14 }}
+								>
+									{g.bank.name}
+								</div>
+								<div
+									className="font-mono text-page-text-subdued"
+									style={{ fontSize: 11, letterSpacing: "0.04em" }}
+								>
+									{g.bank.country} · {g.accounts.length} account
+									{g.accounts.length === 1 ? "" : "s"} · consent {g.consentId}
+								</div>
+							</div>
+							<button
+								type="button"
+								onClick={() =>
+									setDisconnectBank({ id: g.bank.id, name: g.bank.name })
+								}
+								className="flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 							>
-								{g.bank.country} · {g.accounts.length} account
-								{g.accounts.length === 1 ? "" : "s"} · consent {g.consentId}
-							</div>
+								<Icons.X size={12} /> Disconnect
+							</button>
+							<button
+								type="button"
+								onClick={() =>
+									setOauth({
+										bank: { ...g.bank, maxDays: 90, bic: "" },
+										step: 1,
+										reauth: true,
+									})
+								}
+								className="flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+							>
+								<Icons.Refresh size={12} /> Re-authorise
+							</button>
 						</div>
-						<button
-							type="button"
-							onClick={() =>
-								setDisconnectBank({ id: g.bank.id, name: g.bank.name })
-							}
-							className="flex items-center gap-1 px-2.5 py-1 rounded-btn text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
-						>
-							<Icons.X size={12} /> Disconnect
-						</button>
-						<button
-							type="button"
-							onClick={() =>
-								setOauth({
-									bank: { ...g.bank, maxDays: 90, bic: "" },
-									step: 1,
-									reauth: true,
-								})
-							}
-							className="flex items-center gap-1 px-2.5 py-1 rounded-btn text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
-						>
-							<Icons.Refresh size={12} /> Re-authorise
-						</button>
-					</div>
 
-					{/* Accounts table */}
-					<div className="overflow-auto">
-						<table className="w-full border-collapse">
-							<thead>
-								<tr className="bg-table-header-bg">
-									{[
-										"Account name",
-										"IBAN",
-										"Type",
-										"Sync to",
-										"Consent",
-										"",
-									].map((h) => (
-										<th
-											key={h}
-											className="font-mono text-table-header-text text-left px-4 py-2 border-b border-table-border"
-											style={{ fontSize: 11, letterSpacing: "0.06em" }}
-										>
-											{h}
-										</th>
+						{/* Accounts table */}
+						<div className="overflow-auto">
+							<table className="w-full border-collapse bg-table-bg">
+								<thead>
+									<tr className="bg-table-header-bg">
+										{[
+											"Account name",
+											"IBAN",
+											"Type",
+											"Sync to",
+											"Consent",
+											"",
+										].map((h) => (
+											<th
+												key={h}
+												className="font-mono text-table-header-text text-left px-4 py-2 border-b border-table-border"
+												style={{ fontSize: 11, letterSpacing: "0.06em" }}
+											>
+												{h}
+											</th>
+										))}
+									</tr>
+								</thead>
+								<tbody>
+									{g.accounts.map((a) => (
+										<AccountRow key={a.id} account={a} />
 									))}
-								</tr>
-							</thead>
-							<tbody>
-								{g.accounts.map((a) => (
-									<AccountRow key={a.id} account={a} />
-								))}
-							</tbody>
-						</table>
+								</tbody>
+							</table>
+						</div>
 					</div>
-				</div>
-			))}
+				);
+			})}
 
 			{/* OAuth modal */}
 			<OAuthModal oauth={oauth} onClose={() => setOauth(null)} />

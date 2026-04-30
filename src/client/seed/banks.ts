@@ -32,8 +32,8 @@ export type CertInfo = {
 };
 
 export const cert: CertInfo = {
-	cn: "euroflow-client.example.com",
-	issuer: "OPEN BANKING EUROPE CA",
+	cn: "euroflow-client",
+	issuer: "Enable Banking CA",
 	expires: "2027-03-15",
 };
 
