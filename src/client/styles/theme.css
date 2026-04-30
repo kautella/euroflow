@@ -69,7 +69,7 @@
 	--color-btn-normal-bg: var(--navy800);
 	--color-btn-normal-bg-hover: var(--navy600);
 	--color-btn-normal-text: var(--navy150);
-	--color-btn-normal-border: var(--navy600);
+	--color-btn-normal-border: var(--navy300);
 
 	--color-number-positive: #65d6ad;
 	--color-number-negative: #ff9b9b;
@@ -77,13 +77,15 @@
 
 	--color-notice-bg: #0c6b58;
 	--color-notice-text: #65d6ad;
-	--color-notice-border: #0c6b58;
+	--color-notice-border: #65d6ad;
 	--color-warning-bg: #87540d;
 	--color-warning-text: #f5e35d;
-	--color-warning-border: #e6bb20;
+	--color-warning-border: #f5e35d;
 	--color-error-bg: #8a041a;
 	--color-error-text: #ff9b9b;
-	--color-error-border: #e12d39;
+	--color-error-border: #ff9b9b;
+
+	--color-form-label-text: var(--purple150);
 
 	--color-form-input-bg: var(--navy800);
 	--color-form-input-bg-selected: var(--navy700);
@@ -114,9 +116,9 @@
 	--color-status-idle: var(--navy300);
 
 	/* Spacing */
-	--radius-card: 6px;
-	--radius-btn: 4px;
-	--radius-pill: 3px;
+	--radius-card: 3px;
+	--radius-btn: 3px;
+	--radius-pill: 2px;
 	--spacing-page-x: 28px;
 	--spacing-page-y: 24px;
 	--spacing-card: 24px;

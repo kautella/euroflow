@@ -42,12 +42,34 @@ function StatusPage() {
 	const warn = accounts.filter((a) => a.status === "warn").length;
 	const err = accounts.filter((a) => a.status === "err").length;
 	const totalImported = syncRuns.reduce((s, r) => s + r.imported, 0);
-	const recentRuns = syncRuns.slice(0, 8);
+	const recentRuns = syncRuns.slice(0, 30);
+
+	const lastRun = syncRuns[0];
+	const syncBannerStatus =
+		err > 0 ? "err" : warn > 0 || lastRun?.status !== "ok" ? "warn" : "ok";
+	const syncBannerMsg =
+		syncBannerStatus === "err"
+			? `${err} ACCOUNT${err > 1 ? "S" : ""} FAILED LAST SYNC — check the sync log for details.`
+			: syncBannerStatus === "warn"
+				? `${warn} ACCOUNT${warn > 1 ? "S" : ""} DEGRADED — last sync completed with warnings.`
+				: `ALL SYNCS HEALTHY · ${lastRun?.imported ?? 0} txns imported · last run ${relTime(lastRun?.at)} ago`;
+	const SyncBannerIcon =
+		syncBannerStatus === "err"
+			? Icons.AlertTriangle
+			: syncBannerStatus === "warn"
+				? Icons.AlertTriangle
+				: Icons.Check;
+	const syncBannerCls =
+		syncBannerStatus === "err"
+			? "text-error-text border-[rgba(255,155,155,0.3)]"
+			: syncBannerStatus === "warn"
+				? "text-warning-text border-warning-border"
+				: "text-notice-text border-notice-border";
 
 	return (
-		<div className="px-7 py-6">
+		<div className="h-full flex flex-col px-7 py-6 overflow-hidden">
 			{/* Page header */}
-			<div className="flex items-start justify-between pb-5 mb-5 border-b border-table-border">
+			<div className="flex-shrink-0 flex items-start justify-between pb-5 mb-5 border-b border-table-border">
 				<div>
 					<div
 						className="font-mono text-page-text-subdued mb-1"
@@ -62,21 +84,30 @@ function StatusPage() {
 				<div className="flex gap-2">
 					<Link
 						to="/log"
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 					>
 						<Icons.Eye size={14} /> View daemon log
 					</Link>
 					<button
 						type="button"
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
 					>
 						<Icons.Refresh size={14} /> Sync now
 					</button>
 				</div>
 			</div>
 
+			{/* Sync status banner */}
+			<div
+				className={`flex-shrink-0 flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono border ${syncBannerCls}`}
+				style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
+			>
+				<SyncBannerIcon size={14} className="flex-shrink-0" />
+				<span>{syncBannerMsg}</span>
+			</div>
+
 			{/* KPI strip */}
-			<div className="bg-card-bg border border-table-border rounded-[6px] mb-4 overflow-hidden">
+			<div className="flex-shrink-0 bg-card-bg border border-table-border rounded-[3px] mb-4 overflow-hidden">
 				<div className="grid grid-cols-4">
 					<Kpi
 						label="Accounts linked"
@@ -141,14 +172,14 @@ function StatusPage() {
 				</div>
 			</div>
 
-			{/* Two-column layout */}
+			{/* Two-column layout — flex-1 so cards fill remaining height */}
 			<div
-				className="grid gap-4 mb-4"
+				className="flex-1 min-h-0 grid gap-4"
 				style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1.6fr)" }}
 			>
 				{/* Connected accounts */}
-				<div className="bg-card-bg border border-table-border rounded-[6px] overflow-hidden">
-					<div className="flex items-baseline justify-between px-5 py-4 border-b border-table-border">
+				<div className="flex flex-col bg-card-bg border border-table-border rounded-[3px] overflow-hidden">
+					<div className="flex-shrink-0 flex items-baseline justify-between px-5 py-4 border-b border-table-border">
 						<div>
 							<h2 className="text-page-text-dark font-semibold text-small mb-0.5">
 								Connected accounts
@@ -167,67 +198,69 @@ function StatusPage() {
 							Manage →
 						</Link>
 					</div>
-					{accounts.map((a, i) => (
-						<div
-							key={a.id}
-							className="flex items-center gap-3 px-5 py-3.5"
-							style={{
-								borderBottom:
-									i < accounts.length - 1
-										? "1px solid var(--color-table-border)"
-										: undefined,
-							}}
-						>
+					<div className="flex-1 overflow-auto">
+						{accounts.map((a, i) => (
 							<div
-								className="flex-shrink-0 flex items-center justify-center font-mono font-bold text-white rounded"
+								key={a.id}
+								className="flex items-center gap-3 px-5 py-3.5"
 								style={{
-									width: 32,
-									height: 32,
-									borderRadius: 4,
-									background: a.brandColor,
-									fontSize: 11,
-									letterSpacing: "-0.02em",
+									borderBottom:
+										i < accounts.length - 1
+											? "1px solid var(--color-table-border)"
+											: undefined,
 								}}
 							>
-								{a.brandInitials}
-							</div>
-							<div className="flex-1 min-w-0">
-								<div className="font-semibold text-page-text-dark text-small truncate">
-									{a.name}
-								</div>
 								<div
-									className="font-mono text-page-text-subdued truncate"
-									style={{ fontSize: 11 }}
+									className="flex-shrink-0 flex items-center justify-center font-mono font-bold text-white rounded"
+									style={{
+										width: 32,
+										height: 32,
+										borderRadius: 4,
+										background: a.brandColor,
+										fontSize: 11,
+										letterSpacing: "-0.02em",
+									}}
 								>
-									{a.iban}
+									{a.brandInitials}
+								</div>
+								<div className="flex-1 min-w-0">
+									<div className="font-semibold text-page-text-dark text-small truncate">
+										{a.name}
+									</div>
+									<div
+										className="font-mono text-page-text-subdued truncate"
+										style={{ fontSize: 11 }}
+									>
+										{a.iban}
+									</div>
+								</div>
+								<div className="flex-shrink-0 text-right mr-2">
+									<div
+										className="font-mono text-page-text-subdued uppercase"
+										style={{ fontSize: 10, letterSpacing: "0.06em" }}
+									>
+										exp {a.expiresInDays}d
+									</div>
+								</div>
+								<div className="flex-shrink-0">
+									<StatusPill
+										status={a.status}
+										label={a.statusLabel}
+										tooltip={
+											a.status !== "ok"
+												? `Consent expires in ${a.expiresInDays} days — re-authorise via Banks page`
+												: undefined
+										}
+									/>
 								</div>
 							</div>
-							<div className="flex-shrink-0 text-right mr-2">
-								<div
-									className="font-mono text-page-text-subdued uppercase"
-									style={{ fontSize: 10, letterSpacing: "0.06em" }}
-								>
-									exp {a.expiresInDays}d
-								</div>
-							</div>
-							<div className="flex-shrink-0">
-								<StatusPill
-									status={a.status}
-									label={a.statusLabel}
-									tooltip={
-										a.status !== "ok"
-											? `Consent expires in ${a.expiresInDays} days — re-authorise via Banks page`
-											: undefined
-									}
-								/>
-							</div>
-						</div>
-					))}
+						))}
+					</div>
 				</div>
 
 				{/* Recent runs */}
-				<div className="bg-card-bg border border-table-border rounded-[6px] overflow-hidden">
-					<div className="flex items-baseline justify-between px-5 py-4 border-b border-table-border">
+				<div className="flex flex-col bg-card-bg border border-table-border rounded-[3px] overflow-hidden">
+					<div className="flex-shrink-0 flex items-baseline justify-between px-5 py-4 border-b border-table-border">
 						<div>
 							<h2 className="text-page-text-dark font-semibold text-small mb-0.5">
 								Recent runs
@@ -236,7 +269,7 @@ function StatusPage() {
 								className="font-mono text-page-text-subdued uppercase"
 								style={{ fontSize: 11, letterSpacing: "0.06em" }}
 							>
-								Showing last 8 of {syncRuns.length}
+								Showing last {recentRuns.length} of {syncRuns.length}
 							</div>
 						</div>
 						<Link
@@ -246,15 +279,15 @@ function StatusPage() {
 							Full log →
 						</Link>
 					</div>
-					<div className="overflow-auto">
+					<div className="flex-1 overflow-auto">
 						<table className="w-full border-collapse bg-table-bg">
-							<thead>
+							<thead className="sticky top-0 z-10">
 								<tr className="bg-table-header-bg">
 									{["Ran at", "Status", "Imported", "Message", "Duration"].map(
 										(h) => (
 											<th
 												key={h}
-												className="font-mono text-table-header-text text-left px-4 py-2 border-b border-table-border"
+												className="font-mono text-table-header-text text-left px-4 py-2 border-b border-table-border bg-table-header-bg"
 												style={{ fontSize: 11, letterSpacing: "0.06em" }}
 											>
 												{h}
@@ -305,7 +338,7 @@ function StatusPage() {
 			</div>
 
 			{/* Live activity readout */}
-			<div className="bg-card-bg border border-table-border rounded-[6px] px-4 py-3.5">
+			<div className="flex-shrink-0 mt-4 bg-card-bg border border-table-border rounded-[3px] px-4 py-3.5">
 				<Readout
 					items={[
 						{

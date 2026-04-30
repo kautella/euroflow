@@ -68,17 +68,31 @@ export function Sidebar() {
 			>
 				<div className="flex items-center gap-2">
 					<div
-						className="flex items-center justify-center font-mono font-extrabold text-white rounded"
+						className="flex flex-col items-center justify-center font-mono text-white flex-shrink-0"
 						style={{
-							width: 24,
-							height: 24,
+							width: 32,
+							height: 32,
 							borderRadius: 4,
 							background: "linear-gradient(135deg, #a368fc, #7a0ecc)",
-							fontSize: 11,
-							letterSpacing: "-0.04em",
+							lineHeight: 1,
+							padding: "2px 3px",
 						}}
 					>
-						e/f
+						<span style={{ fontSize: 6, opacity: 0.75 }}>63</span>
+						<span
+							style={{
+								fontSize: 15,
+								fontWeight: 800,
+								letterSpacing: "-0.04em",
+							}}
+						>
+							Ef
+						</span>
+						<span
+							style={{ fontSize: 5, opacity: 0.75, letterSpacing: "0.06em" }}
+						>
+							euroflow
+						</span>
 					</div>
 					<div>
 						<div className="font-semibold text-sidebar-text-selected text-medium">
@@ -140,7 +154,7 @@ export function Sidebar() {
 				</div>
 				<button
 					type="button"
-					className="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover cursor-pointer"
+					className="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover cursor-pointer"
 				>
 					<Icons.Refresh size={14} />
 					Sync now
