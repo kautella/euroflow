@@ -62,9 +62,9 @@ function StatusPage() {
 				: "text-notice-text border-notice-border";
 
 	return (
-		<div className="px-7 py-6">
+		<div className="h-full flex flex-col px-7 py-6 overflow-hidden">
 			{/* Page header */}
-			<div className="flex items-start justify-between pb-5 mb-5 border-b border-table-border">
+			<div className="flex-shrink-0 flex items-start justify-between pb-5 mb-5 border-b border-table-border">
 				<div>
 					<div
 						className="font-mono text-page-text-subdued mb-1"
@@ -94,7 +94,7 @@ function StatusPage() {
 
 			{/* Sync status banner */}
 			<div
-				className={`flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono border ${syncBannerCls}`}
+				className={`flex-shrink-0 flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono border ${syncBannerCls}`}
 				style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
 			>
 				<SyncBannerIcon size={14} className="flex-shrink-0" />
@@ -102,7 +102,7 @@ function StatusPage() {
 			</div>
 
 			{/* KPI strip */}
-			<div className="bg-card-bg border border-table-border rounded-[3px] mb-4 overflow-hidden">
+			<div className="flex-shrink-0 bg-card-bg border border-table-border rounded-[3px] mb-4 overflow-hidden">
 				<div className="grid grid-cols-4">
 					<Kpi
 						label="Accounts linked"
@@ -167,14 +167,14 @@ function StatusPage() {
 				</div>
 			</div>
 
-			{/* Two-column layout */}
+			{/* Two-column layout — flex-1 so cards fill remaining height */}
 			<div
-				className="grid gap-4 mb-4"
+				className="flex-1 min-h-0 grid gap-4"
 				style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1.6fr)" }}
 			>
 				{/* Connected accounts */}
-				<div className="bg-card-bg border border-table-border rounded-[3px] overflow-hidden">
-					<div className="flex items-baseline justify-between px-5 py-4 border-b border-table-border">
+				<div className="flex flex-col bg-card-bg border border-table-border rounded-[3px] overflow-hidden">
+					<div className="flex-shrink-0 flex items-baseline justify-between px-5 py-4 border-b border-table-border">
 						<div>
 							<h2 className="text-page-text-dark font-semibold text-small mb-0.5">
 								Connected accounts
@@ -193,7 +193,9 @@ function StatusPage() {
 							Manage →
 						</Link>
 					</div>
+					<div className="flex-1 overflow-auto">
 					{accounts.map((a, i) => (
+					</div>
 						<div
 							key={a.id}
 							className="flex items-center gap-3 px-5 py-3.5"
@@ -252,8 +254,8 @@ function StatusPage() {
 				</div>
 
 				{/* Recent runs */}
-				<div className="bg-card-bg border border-table-border rounded-[3px] overflow-hidden">
-					<div className="flex items-baseline justify-between px-5 py-4 border-b border-table-border">
+				<div className="flex flex-col bg-card-bg border border-table-border rounded-[3px] overflow-hidden">
+					<div className="flex-shrink-0 flex items-baseline justify-between px-5 py-4 border-b border-table-border">
 						<div>
 							<h2 className="text-page-text-dark font-semibold text-small mb-0.5">
 								Recent runs
@@ -272,7 +274,7 @@ function StatusPage() {
 							Full log →
 						</Link>
 					</div>
-					<div className="overflow-auto">
+					<div className="flex-1 overflow-auto">
 						<table className="w-full border-collapse bg-table-bg">
 							<thead>
 								<tr className="bg-table-header-bg">
@@ -331,7 +333,7 @@ function StatusPage() {
 			</div>
 
 			{/* Live activity readout */}
-			<div className="bg-card-bg border border-table-border rounded-[3px] px-4 py-3.5">
+			<div className="flex-shrink-0 mt-4 bg-card-bg border border-table-border rounded-[3px] px-4 py-3.5">
 				<Readout
 					items={[
 						{
