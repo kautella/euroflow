@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Icons } from "../components/Icon";
 import { Readout } from "../components/Readout";
 import { StatusPill } from "../components/StatusPill";
 import { fmtDateTime, relTime } from "../lib/fmt";
@@ -41,22 +42,18 @@ function StatusPage() {
 	const warn = accounts.filter((a) => a.status === "warn").length;
 	const err = accounts.filter((a) => a.status === "err").length;
 	const totalImported = syncRuns.reduce((s, r) => s + r.imported, 0);
-	const expiringAccount = accounts.find((a) => a.expiresInDays < 14);
 	const recentRuns = syncRuns.slice(0, 8);
 
 	return (
-		<div
-			className="p-[var(--spacing-page-x)]"
-			style={{ paddingTop: "var(--spacing-page-y)" }}
-		>
+		<div className="px-7 py-6">
 			{/* Page header */}
-			<div className="flex items-start justify-between mb-5">
+			<div className="flex items-start justify-between pb-5 mb-5 border-b border-table-border">
 				<div>
 					<div
 						className="font-mono text-page-text-subdued mb-1"
 						style={{ fontSize: 11, letterSpacing: "0.06em" }}
 					>
-						/ Status
+						/ STATUS
 					</div>
 					<h1 className="text-page-text-dark font-semibold text-large">
 						Sync overview
@@ -65,21 +62,21 @@ function StatusPage() {
 				<div className="flex gap-2">
 					<Link
 						to="/log"
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-btn text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 					>
-						View daemon log
+						<Icons.Eye size={14} /> View daemon log
 					</Link>
 					<button
 						type="button"
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-btn text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
 					>
-						Sync now
+						<Icons.Refresh size={14} /> Sync now
 					</button>
 				</div>
 			</div>
 
 			{/* KPI strip */}
-			<div className="bg-card-bg border border-card-border rounded-card mb-4 overflow-hidden">
+			<div className="bg-card-bg border border-table-border rounded-[6px] mb-4 overflow-hidden">
 				<div className="grid grid-cols-4">
 					<Kpi
 						label="Accounts linked"
@@ -144,35 +141,13 @@ function StatusPage() {
 				</div>
 			</div>
 
-			{/* Warning banner */}
-			{expiringAccount && (
-				<div className="flex items-center gap-3 px-4 py-3 mb-4 rounded bg-warning-bg text-warning-text border border-warning-border">
-					<div
-						className="font-mono flex-1"
-						style={{ fontSize: 12, letterSpacing: "0.04em" }}
-					>
-						<strong>
-							SESSION EXPIRES IN {expiringAccount.expiresInDays} DAYS
-						</strong>{" "}
-						— {expiringAccount.name} requires re-authorisation. Under PSD2 SCA,
-						consents are valid for 180 days.
-					</div>
-					<Link
-						to="/banks"
-						className="flex-shrink-0 px-3 py-1 rounded-btn text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
-					>
-						Re-authorise →
-					</Link>
-				</div>
-			)}
-
 			{/* Two-column layout */}
 			<div
 				className="grid gap-4 mb-4"
 				style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1.6fr)" }}
 			>
 				{/* Connected accounts */}
-				<div className="bg-card-bg border border-card-border rounded-card overflow-hidden">
+				<div className="bg-card-bg border border-table-border rounded-[6px] overflow-hidden">
 					<div className="flex items-baseline justify-between px-5 py-4 border-b border-table-border">
 						<div>
 							<h2 className="text-page-text-dark font-semibold text-small mb-0.5">
@@ -236,14 +211,22 @@ function StatusPage() {
 								</div>
 							</div>
 							<div className="flex-shrink-0">
-								<StatusPill status={a.status} label={a.statusLabel} />
+								<StatusPill
+									status={a.status}
+									label={a.statusLabel}
+									tooltip={
+										a.status !== "ok"
+											? `Consent expires in ${a.expiresInDays} days — re-authorise via Banks page`
+											: undefined
+									}
+								/>
 							</div>
 						</div>
 					))}
 				</div>
 
 				{/* Recent runs */}
-				<div className="bg-card-bg border border-card-border rounded-card overflow-hidden">
+				<div className="bg-card-bg border border-table-border rounded-[6px] overflow-hidden">
 					<div className="flex items-baseline justify-between px-5 py-4 border-b border-table-border">
 						<div>
 							<h2 className="text-page-text-dark font-semibold text-small mb-0.5">
@@ -264,7 +247,7 @@ function StatusPage() {
 						</Link>
 					</div>
 					<div className="overflow-auto">
-						<table className="w-full border-collapse">
+						<table className="w-full border-collapse bg-table-bg">
 							<thead>
 								<tr className="bg-table-header-bg">
 									{["Ran at", "Status", "Imported", "Message", "Duration"].map(
@@ -322,7 +305,7 @@ function StatusPage() {
 			</div>
 
 			{/* Live activity readout */}
-			<div className="bg-card-bg border border-card-border rounded-card px-4 py-3.5">
+			<div className="bg-card-bg border border-table-border rounded-[6px] px-4 py-3.5">
 				<Readout
 					items={[
 						{

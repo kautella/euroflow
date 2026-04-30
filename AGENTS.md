@@ -64,7 +64,8 @@ drizzle/      Generated migration files (drizzle-kit output)
   - `test/sync-engine-partial-failure`
 
 ### Commits
-- **Branch commits** — loose, just descriptive enough to understand what changed
+- **Branch commits** — conventional commits prefix, no branch name in message: `feat: description`, `fix: description`, `chore: description`, `refactor: description`, `docs: description`, `test: description`
+- **Main commits** — GitHub squash merge format: imperative sentence + `(#N)` suffix, no conventional prefix
 - AI-authored commits: add `Co-Authored-By: Claude <noreply@anthropic.com>` trailer — GitHub shows the Claude badge automatically
 
 ### Pull Requests

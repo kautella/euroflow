@@ -45,7 +45,7 @@ export const accounts: Account[] = [
 		brandInitials: "N26",
 		brandColor: "#1a1a1a",
 		status: "warn",
-		statusLabel: "EXPIRING",
+		statusLabel: "WARN",
 		expiresInDays: 5,
 		lastSync: ago(2),
 	},
