@@ -195,7 +195,6 @@ function StatusPage() {
 					</div>
 					<div className="flex-1 overflow-auto">
 					{accounts.map((a, i) => (
-					</div>
 						<div
 							key={a.id}
 							className="flex items-center gap-3 px-5 py-3.5"
@@ -251,6 +250,7 @@ function StatusPage() {
 							</div>
 						</div>
 					))}
+					</div>
 				</div>
 
 				{/* Recent runs */}
