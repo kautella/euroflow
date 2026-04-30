@@ -261,7 +261,7 @@ function OAuthModal({
 									</div>
 								</div>
 								<Icons.Arrow size={14} />
-								<select className="w-full px-2 py-1.5 rounded-[4px] text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected">
+								<select className="w-full px-2 py-1.5 rounded-[3px] text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected">
 									<option>{a.mapping}</option>
 									<option>Main checking</option>
 									<option>Savings</option>
@@ -287,7 +287,7 @@ function OAuthModal({
 					<button
 						type="button"
 						onClick={onClose}
-						className="px-3 py-1.5 rounded-[4px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+						className="px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 					>
 						Cancel
 					</button>
@@ -295,7 +295,7 @@ function OAuthModal({
 						<button
 							type="button"
 							onClick={() => setState((s) => s && { ...s, step: 2 })}
-							className="px-3 py-1.5 rounded-[4px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+							className="px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
 						>
 							Continue at bank →
 						</button>
@@ -304,7 +304,7 @@ function OAuthModal({
 						<button
 							type="button"
 							onClick={onClose}
-							className="px-3 py-1.5 rounded-[4px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+							className="px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
 						>
 							Finish
 						</button>
@@ -399,56 +399,29 @@ function BanksPage() {
 				</div>
 			</div>
 
-			{/* eIDAS cert card */}
-			<div className="bg-card-bg border border-table-border rounded-[6px] p-5 mb-4">
-				<div className="flex items-center gap-4">
-					<div
-						className="flex-shrink-0 flex items-center justify-center rounded"
-						style={{
-							width: 40,
-							height: 40,
-							borderRadius: 4,
-							background: cert ? "rgba(20,125,100,0.15)" : "rgba(138,4,26,0.2)",
-							border: `1px solid ${cert ? "rgba(101,214,173,0.3)" : "var(--color-error-border)"}`,
-							color: cert
-								? "var(--color-status-ok)"
-								: "var(--color-status-err)",
-						}}
-					>
-						<Icons.Lock size={18} />
-					</div>
-					<div className="flex-1">
-						<div
-							className="text-page-text-dark font-semibold"
-							style={{ fontSize: 14 }}
-						>
-							{cert
-								? "PSD2 client certificate · QWAC"
-								: "No certificate uploaded"}
-						</div>
-						<div
-							className="font-mono text-page-text-subdued mt-1"
-							style={{ fontSize: 11, letterSpacing: "0.04em" }}
-						>
-							{cert ? (
-								<>
-									CN={cert.cn} · ISSUED BY {cert.issuer} · EXPIRES{" "}
-									{cert.expires}
-								</>
-							) : (
-								<>UPLOAD A .PEM FILE TO AUTHENTICATE WITH PSD2 ENDPOINTS</>
-							)}
-						</div>
-					</div>
-					<label className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-small cursor-pointer bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover">
-						<Icons.Upload size={14} /> {cert ? "Replace .pem" : "Upload .pem"}
-						<input type="file" accept=".pem,.crt,.cer" className="hidden" />
-					</label>
+			{/* Status banner */}
+			{!cert ? (
+				<div className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-error-text border border-[rgba(255,155,155,0.3)] mb-5 font-mono" style={{ fontSize: 12, letterSpacing: "0.04em" }}>
+					<Icons.Lock size={14} className="flex-shrink-0" />
+					<span className="flex-1">NO PSD2 CERTIFICATE — bank connections are disabled.</span>
+					<a href="/settings" className="flex-shrink-0 px-2.5 py-1 rounded-[3px] font-medium bg-btn-normal-bg text-page-text-dark border border-page-text-light hover:bg-btn-normal-bg-hover" style={{ fontSize: 11 }}>
+						Settings → Security
+					</a>
 				</div>
-			</div>
+			) : totalNeedReauth > 0 ? (
+				<div className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-warning-text border border-warning-border mb-5 font-mono" style={{ fontSize: 12, letterSpacing: "0.04em" }}>
+					<Icons.AlertTriangle size={14} className="flex-shrink-0" />
+					<span className="flex-1">{totalNeedReauth} ACCOUNT{totalNeedReauth > 1 ? "S" : ""} NEED RE-AUTHENTICATION — consent expiring within 14 days.</span>
+				</div>
+			) : (
+				<div className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-notice-text border border-notice-border mb-5 font-mono" style={{ fontSize: 12, letterSpacing: "0.04em" }}>
+					<Icons.Shield size={14} className="flex-shrink-0" />
+					<span>ALL CONNECTIONS HEALTHY · {connectedBankGroups.flatMap(g => g.accounts).length} accounts active · certificate valid until {cert.expires}</span>
+				</div>
+			)}
 
 			{/* Connect a new bank */}
-			<div className="bg-card-bg border border-table-border rounded-[6px] p-5 mb-6">
+			<div className="bg-card-bg border border-table-border rounded-[3px] p-5 mb-6">
 				<h2 className="text-page-text-dark font-semibold text-small mb-1">
 					Connect a new bank
 				</h2>
@@ -461,7 +434,7 @@ function BanksPage() {
 					style={{ gridTemplateColumns: "120px 1fr" }}
 				>
 					<select
-						className="px-2 py-1.5 rounded-[4px] text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected disabled:opacity-50"
+						className="px-2 py-1.5 rounded-[3px] text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected disabled:opacity-50"
 						value={country}
 						onChange={(e) => setCountry(e.target.value)}
 						disabled={!cert}
@@ -477,7 +450,7 @@ function BanksPage() {
 							<Icons.Search size={14} />
 						</span>
 						<input
-							className="w-full pl-8 pr-3 py-1.5 rounded-[4px] text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected disabled:opacity-50"
+							className="w-full pl-8 pr-3 py-1.5 rounded-[3px] text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected disabled:opacity-50"
 							placeholder="Bank name (e.g. N26, Revolut, ING…)"
 							value={searchQ}
 							onChange={(e) => setSearchQ(e.target.value)}
@@ -565,7 +538,7 @@ function BanksPage() {
 				return (
 					<div
 						key={g.bank.id}
-						className={`bg-card-bg border border-table-border rounded-[6px] mb-3 overflow-hidden ${accentBorder}`}
+						className={`bg-card-bg border border-table-border rounded-[3px] mb-3 overflow-hidden ${accentBorder}`}
 					>
 						{/* Bank header row */}
 						<div className="flex items-center gap-3.5 px-4 py-3.5 border-b border-table-border bg-table-bg">
@@ -601,7 +574,7 @@ function BanksPage() {
 								onClick={() =>
 									setDisconnectBank({ id: g.bank.id, name: g.bank.name })
 								}
-								className="flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+								className="flex items-center gap-1 px-2.5 py-1 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 							>
 								<Icons.X size={12} /> Disconnect
 							</button>
@@ -614,7 +587,7 @@ function BanksPage() {
 										reauth: true,
 									})
 								}
-								className="flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+								className="flex items-center gap-1 px-2.5 py-1 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
 							>
 								<Icons.Refresh size={12} /> Re-authorise
 							</button>

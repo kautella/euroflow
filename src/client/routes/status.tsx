@@ -44,6 +44,23 @@ function StatusPage() {
 	const totalImported = syncRuns.reduce((s, r) => s + r.imported, 0);
 	const recentRuns = syncRuns.slice(0, 8);
 
+	const lastRun = syncRuns[0];
+	const syncBannerStatus = err > 0 ? "err" : warn > 0 || lastRun?.status !== "ok" ? "warn" : "ok";
+	const syncBannerMsg =
+		syncBannerStatus === "err"
+			? `${err} ACCOUNT${err > 1 ? "S" : ""} FAILED LAST SYNC — check the sync log for details.`
+			: syncBannerStatus === "warn"
+				? `${warn} ACCOUNT${warn > 1 ? "S" : ""} DEGRADED — last sync completed with warnings.`
+				: `ALL SYNCS HEALTHY · ${lastRun?.imported ?? 0} txns imported · last run ${relTime(lastRun?.at)} ago`;
+	const SyncBannerIcon =
+		syncBannerStatus === "err" ? Icons.AlertTriangle : syncBannerStatus === "warn" ? Icons.AlertTriangle : Icons.Check;
+	const syncBannerCls =
+		syncBannerStatus === "err"
+			? "text-error-text border-[rgba(255,155,155,0.3)]"
+			: syncBannerStatus === "warn"
+				? "text-warning-text border-warning-border"
+				: "text-notice-text border-notice-border";
+
 	return (
 		<div className="px-7 py-6">
 			{/* Page header */}
@@ -62,21 +79,30 @@ function StatusPage() {
 				<div className="flex gap-2">
 					<Link
 						to="/log"
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 					>
 						<Icons.Eye size={14} /> View daemon log
 					</Link>
 					<button
 						type="button"
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
 					>
 						<Icons.Refresh size={14} /> Sync now
 					</button>
 				</div>
 			</div>
 
+			{/* Sync status banner */}
+			<div
+				className={`flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono border ${syncBannerCls}`}
+				style={{ fontSize: 12, letterSpacing: "0.04em" }}
+			>
+				<SyncBannerIcon size={14} className="flex-shrink-0" />
+				<span>{syncBannerMsg}</span>
+			</div>
+
 			{/* KPI strip */}
-			<div className="bg-card-bg border border-table-border rounded-[6px] mb-4 overflow-hidden">
+			<div className="bg-card-bg border border-table-border rounded-[3px] mb-4 overflow-hidden">
 				<div className="grid grid-cols-4">
 					<Kpi
 						label="Accounts linked"
@@ -147,7 +173,7 @@ function StatusPage() {
 				style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1.6fr)" }}
 			>
 				{/* Connected accounts */}
-				<div className="bg-card-bg border border-table-border rounded-[6px] overflow-hidden">
+				<div className="bg-card-bg border border-table-border rounded-[3px] overflow-hidden">
 					<div className="flex items-baseline justify-between px-5 py-4 border-b border-table-border">
 						<div>
 							<h2 className="text-page-text-dark font-semibold text-small mb-0.5">
@@ -226,7 +252,7 @@ function StatusPage() {
 				</div>
 
 				{/* Recent runs */}
-				<div className="bg-card-bg border border-table-border rounded-[6px] overflow-hidden">
+				<div className="bg-card-bg border border-table-border rounded-[3px] overflow-hidden">
 					<div className="flex items-baseline justify-between px-5 py-4 border-b border-table-border">
 						<div>
 							<h2 className="text-page-text-dark font-semibold text-small mb-0.5">
@@ -305,7 +331,7 @@ function StatusPage() {
 			</div>
 
 			{/* Live activity readout */}
-			<div className="bg-card-bg border border-table-border rounded-[6px] px-4 py-3.5">
+			<div className="bg-card-bg border border-table-border rounded-[3px] px-4 py-3.5">
 				<Readout
 					items={[
 						{

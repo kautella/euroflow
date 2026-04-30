@@ -32,7 +32,7 @@ export function StatusPill({
 	const s = styles[status];
 	const pill = (
 		<span
-			className={`inline-flex items-center gap-1.5 font-mono px-2 py-0.5 rounded-[3px] ${s.text} ${s.bg}`}
+			className={`inline-flex items-center gap-1.5 font-mono px-2 py-0.5 rounded-[2px] ${s.text} ${s.bg}`}
 			style={{ fontSize: 11, letterSpacing: "0.06em" }}
 		>
 			<span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.dot}`} />
@@ -49,7 +49,7 @@ export function StatusPill({
 				<Tooltip.Content
 					side="top"
 					sideOffset={6}
-					className="font-mono px-2.5 py-1.5 rounded-[4px] text-tooltip-text bg-tooltip-bg border border-tooltip-border"
+					className="font-mono px-2.5 py-1.5 rounded-[3px] text-tooltip-text bg-tooltip-bg border border-tooltip-border"
 					style={{ fontSize: 11, letterSpacing: "0.04em", maxWidth: 260 }}
 				>
 					{tooltip}
