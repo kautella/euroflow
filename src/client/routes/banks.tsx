@@ -402,7 +402,7 @@ function BanksPage() {
 			{/* Status banners */}
 			<div className="flex flex-col gap-2 mb-5">
 				{!cert ? (
-					<div className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-error-text border border-[rgba(255,155,155,0.3)] font-mono" style={{ fontSize: 12, letterSpacing: "0.04em" }}>
+					<div className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-error-text border border-[rgba(255,155,155,0.3)] font-mono" style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}>
 						<Icons.Lock size={14} className="flex-shrink-0" />
 						<span className="flex-1">NO PSD2 CERTIFICATE — bank connections are disabled.</span>
 						<a href="/settings" className="flex-shrink-0 px-2.5 py-1 rounded-[3px] font-medium bg-btn-normal-bg text-page-text-dark border border-page-text-light hover:bg-btn-normal-bg-hover" style={{ fontSize: 11 }}>
@@ -410,7 +410,7 @@ function BanksPage() {
 						</a>
 					</div>
 				) : (
-					<div className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-notice-text border border-notice-border font-mono" style={{ fontSize: 12, letterSpacing: "0.04em" }}>
+					<div className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-notice-text border border-notice-border font-mono" style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}>
 						<Icons.Shield size={14} className="flex-shrink-0" />
 						<span className="flex-1">PSD2 CERTIFICATE ACTIVE · {connectedBankGroups.flatMap(g => g.accounts).length} accounts connected · valid until {cert.expires}</span>
 						<a href="/settings" className="flex-shrink-0 px-2.5 py-1 rounded-[3px] bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover" style={{ fontSize: 11 }}>
@@ -419,7 +419,7 @@ function BanksPage() {
 					</div>
 				)}
 				{cert && totalNeedReauth > 0 && (
-					<div className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-warning-text border border-warning-border font-mono" style={{ fontSize: 12, letterSpacing: "0.04em" }}>
+					<div className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-warning-text border border-warning-border font-mono" style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}>
 						<Icons.AlertTriangle size={14} className="flex-shrink-0" />
 						<span>{totalNeedReauth} ACCOUNT{totalNeedReauth > 1 ? "S" : ""} NEED RE-AUTHENTICATION — consent expiring within 14 days.</span>
 					</div>

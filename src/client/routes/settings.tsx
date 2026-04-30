@@ -296,7 +296,7 @@ export function SecuritySection({
 						{certInfo ? (
 							<div
 								className="font-mono text-page-text-light"
-								style={{ fontSize: 12, letterSpacing: "0.04em" }}
+								style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
 							>
 								CN={certInfo.cn} · ISSUED BY {certInfo.issuer} · EXPIRES{" "}
 								{certInfo.expires}
@@ -304,7 +304,7 @@ export function SecuritySection({
 						) : (
 							<div
 								className="font-mono text-page-text-subdued"
-								style={{ fontSize: 12, letterSpacing: "0.04em" }}
+								style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
 							>
 								No certificate uploaded.
 							</div>
@@ -966,7 +966,7 @@ function SettingsPage() {
 			{/* Security status banner */}
 			<div
 				className={`flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono ${bannerCls} border`}
-				style={{ fontSize: 12, letterSpacing: "0.04em" }}
+				style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
 			>
 				<BannerIcon size={14} className="flex-shrink-0" />
 				<span>{bannerMsg}</span>

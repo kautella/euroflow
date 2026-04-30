@@ -95,7 +95,7 @@ function StatusPage() {
 			{/* Sync status banner */}
 			<div
 				className={`flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono border ${syncBannerCls}`}
-				style={{ fontSize: 12, letterSpacing: "0.04em" }}
+				style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
 			>
 				<SyncBannerIcon size={14} className="flex-shrink-0" />
 				<span>{syncBannerMsg}</span>
