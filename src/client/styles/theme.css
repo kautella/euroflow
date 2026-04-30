@@ -180,6 +180,22 @@
 	--color-modal-border: #4d5768;
 }
 
+/* Custom utilities — Tailwind v4 doesn't auto-generate these from non-standard --radius-* / --spacing-* names */
+@utility rounded-card {
+	border-radius: var(--radius-card);
+}
+@utility rounded-btn {
+	border-radius: var(--radius-btn);
+}
+@utility rounded-pill {
+	border-radius: var(--radius-pill);
+}
+@utility p-page {
+	padding: var(--spacing-page-x);
+	padding-top: var(--spacing-page-y);
+	padding-bottom: var(--spacing-page-y);
+}
+
 /* Global base styles */
 html {
 	font-family: var(--font-sans);

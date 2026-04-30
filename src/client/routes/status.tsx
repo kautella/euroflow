@@ -45,10 +45,7 @@ function StatusPage() {
 	const recentRuns = syncRuns.slice(0, 8);
 
 	return (
-		<div
-			className="p-[var(--spacing-page-x)]"
-			style={{ paddingTop: "var(--spacing-page-y)" }}
-		>
+		<div className="p-page">
 			{/* Page header */}
 			<div className="flex items-start justify-between mb-5">
 				<div>
