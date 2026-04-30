@@ -79,8 +79,20 @@ export function Sidebar() {
 						}}
 					>
 						<span style={{ fontSize: 6, opacity: 0.75 }}>63</span>
-						<span style={{ fontSize: 15, fontWeight: 800, letterSpacing: "-0.04em" }}>Ef</span>
-						<span style={{ fontSize: 5, opacity: 0.75, letterSpacing: "0.06em" }}>euroflow</span>
+						<span
+							style={{
+								fontSize: 15,
+								fontWeight: 800,
+								letterSpacing: "-0.04em",
+							}}
+						>
+							Ef
+						</span>
+						<span
+							style={{ fontSize: 5, opacity: 0.75, letterSpacing: "0.06em" }}
+						>
+							euroflow
+						</span>
 					</div>
 					<div>
 						<div className="font-semibold text-sidebar-text-selected text-medium">

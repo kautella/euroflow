@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Icons } from "../components/Icon";
 import { ConfirmModal } from "../components/Modal";
 import { StatusPill } from "../components/StatusPill";
-import { cert as seedCert, type CertInfo } from "../seed/banks";
+import { type CertInfo, cert as seedCert } from "../seed/banks";
 import {
 	hasPassword,
 	type SettingsActual,
@@ -266,7 +266,11 @@ export function SecuritySection({
 					{hp && (
 						<button
 							type="button"
-							onClick={() => { setHp(false); setPw(""); setConfirm(""); }}
+							onClick={() => {
+								setHp(false);
+								setPw("");
+								setConfirm("");
+							}}
 							className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-transparent text-error-text border border-[rgba(255,155,155,0.3)] hover:bg-[rgba(255,155,155,0.08)] hover:border-error-border"
 						>
 							Remove password
@@ -940,8 +944,7 @@ function SettingsPage() {
 			: bannerStatus === "warn"
 				? "NO PASSWORD SET — all routes are accessible without authentication."
 				: "ALL SECURE — password active · PSD2 certificate valid.";
-	const BannerIcon =
-		bannerStatus === "ok" ? Icons.Shield : Icons.ShieldOff;
+	const BannerIcon = bannerStatus === "ok" ? Icons.Shield : Icons.ShieldOff;
 	const bannerCls =
 		bannerStatus === "err"
 			? "text-error-text border-[rgba(255,155,155,0.3)]"

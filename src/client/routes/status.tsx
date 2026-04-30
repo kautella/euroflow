@@ -45,7 +45,8 @@ function StatusPage() {
 	const recentRuns = syncRuns.slice(0, 30);
 
 	const lastRun = syncRuns[0];
-	const syncBannerStatus = err > 0 ? "err" : warn > 0 || lastRun?.status !== "ok" ? "warn" : "ok";
+	const syncBannerStatus =
+		err > 0 ? "err" : warn > 0 || lastRun?.status !== "ok" ? "warn" : "ok";
 	const syncBannerMsg =
 		syncBannerStatus === "err"
 			? `${err} ACCOUNT${err > 1 ? "S" : ""} FAILED LAST SYNC — check the sync log for details.`
@@ -53,7 +54,11 @@ function StatusPage() {
 				? `${warn} ACCOUNT${warn > 1 ? "S" : ""} DEGRADED — last sync completed with warnings.`
 				: `ALL SYNCS HEALTHY · ${lastRun?.imported ?? 0} txns imported · last run ${relTime(lastRun?.at)} ago`;
 	const SyncBannerIcon =
-		syncBannerStatus === "err" ? Icons.AlertTriangle : syncBannerStatus === "warn" ? Icons.AlertTriangle : Icons.Check;
+		syncBannerStatus === "err"
+			? Icons.AlertTriangle
+			: syncBannerStatus === "warn"
+				? Icons.AlertTriangle
+				: Icons.Check;
 	const syncBannerCls =
 		syncBannerStatus === "err"
 			? "text-error-text border-[rgba(255,155,155,0.3)]"
@@ -194,62 +199,62 @@ function StatusPage() {
 						</Link>
 					</div>
 					<div className="flex-1 overflow-auto">
-					{accounts.map((a, i) => (
-						<div
-							key={a.id}
-							className="flex items-center gap-3 px-5 py-3.5"
-							style={{
-								borderBottom:
-									i < accounts.length - 1
-										? "1px solid var(--color-table-border)"
-										: undefined,
-							}}
-						>
+						{accounts.map((a, i) => (
 							<div
-								className="flex-shrink-0 flex items-center justify-center font-mono font-bold text-white rounded"
+								key={a.id}
+								className="flex items-center gap-3 px-5 py-3.5"
 								style={{
-									width: 32,
-									height: 32,
-									borderRadius: 4,
-									background: a.brandColor,
-									fontSize: 11,
-									letterSpacing: "-0.02em",
+									borderBottom:
+										i < accounts.length - 1
+											? "1px solid var(--color-table-border)"
+											: undefined,
 								}}
 							>
-								{a.brandInitials}
-							</div>
-							<div className="flex-1 min-w-0">
-								<div className="font-semibold text-page-text-dark text-small truncate">
-									{a.name}
-								</div>
 								<div
-									className="font-mono text-page-text-subdued truncate"
-									style={{ fontSize: 11 }}
+									className="flex-shrink-0 flex items-center justify-center font-mono font-bold text-white rounded"
+									style={{
+										width: 32,
+										height: 32,
+										borderRadius: 4,
+										background: a.brandColor,
+										fontSize: 11,
+										letterSpacing: "-0.02em",
+									}}
 								>
-									{a.iban}
+									{a.brandInitials}
+								</div>
+								<div className="flex-1 min-w-0">
+									<div className="font-semibold text-page-text-dark text-small truncate">
+										{a.name}
+									</div>
+									<div
+										className="font-mono text-page-text-subdued truncate"
+										style={{ fontSize: 11 }}
+									>
+										{a.iban}
+									</div>
+								</div>
+								<div className="flex-shrink-0 text-right mr-2">
+									<div
+										className="font-mono text-page-text-subdued uppercase"
+										style={{ fontSize: 10, letterSpacing: "0.06em" }}
+									>
+										exp {a.expiresInDays}d
+									</div>
+								</div>
+								<div className="flex-shrink-0">
+									<StatusPill
+										status={a.status}
+										label={a.statusLabel}
+										tooltip={
+											a.status !== "ok"
+												? `Consent expires in ${a.expiresInDays} days — re-authorise via Banks page`
+												: undefined
+										}
+									/>
 								</div>
 							</div>
-							<div className="flex-shrink-0 text-right mr-2">
-								<div
-									className="font-mono text-page-text-subdued uppercase"
-									style={{ fontSize: 10, letterSpacing: "0.06em" }}
-								>
-									exp {a.expiresInDays}d
-								</div>
-							</div>
-							<div className="flex-shrink-0">
-								<StatusPill
-									status={a.status}
-									label={a.statusLabel}
-									tooltip={
-										a.status !== "ok"
-											? `Consent expires in ${a.expiresInDays} days — re-authorise via Banks page`
-											: undefined
-									}
-								/>
-							</div>
-						</div>
-					))}
+						))}
 					</div>
 				</div>
 
