@@ -276,13 +276,13 @@ function StatusPage() {
 					</div>
 					<div className="flex-1 overflow-auto">
 						<table className="w-full border-collapse bg-table-bg">
-							<thead>
+							<thead className="sticky top-0 z-10">
 								<tr className="bg-table-header-bg">
 									{["Ran at", "Status", "Imported", "Message", "Duration"].map(
 										(h) => (
 											<th
 												key={h}
-												className="font-mono text-table-header-text text-left px-4 py-2 border-b border-table-border"
+												className="font-mono text-table-header-text text-left px-4 py-2 border-b border-table-border bg-table-header-bg"
 												style={{ fontSize: 11, letterSpacing: "0.06em" }}
 											>
 												{h}
