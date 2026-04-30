@@ -177,14 +177,14 @@ function SectionActions({
 					<button
 						type="button"
 						onClick={onReset}
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-transparent border border-transparent text-btn-bare-text hover:bg-btn-bare-bg-hover hover:text-btn-bare-text-hover"
 					>
 						Reset
 					</button>
 					<button
 						type="button"
 						onClick={onSave}
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 					>
 						Save
 					</button>
@@ -280,7 +280,7 @@ export function SecuritySection({
 						type="button"
 						onClick={save}
 						disabled={!canSave}
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover disabled:opacity-40"
+						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover disabled:opacity-40"
 					>
 						{hp ? "Update password" : "Set password"}
 					</button>
@@ -731,13 +731,13 @@ export function ScheduleSection({ embedded }: { embedded?: boolean }) {
 							<button
 								type="button"
 								onClick={() => setD(settingsSchedule)}
-								className="inline-flex items-center px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+								className="inline-flex items-center px-3 py-1.5 rounded-[3px] text-small bg-transparent border border-transparent text-btn-bare-text hover:bg-btn-bare-bg-hover hover:text-btn-bare-text-hover"
 							>
 								Reset
 							</button>
 							<button
 								type="button"
-								className="inline-flex items-center px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+								className="inline-flex items-center px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 							>
 								Save
 							</button>
@@ -752,7 +752,7 @@ export function ScheduleSection({ embedded }: { embedded?: boolean }) {
 	return (
 		<SectionCard
 			title="Sync schedule"
-			desc="When the daemon runs the import job."
+			desc="When euroflow runs the import job."
 		>
 			{inner}
 		</SectionCard>
@@ -850,13 +850,13 @@ function AdvancedSection() {
 								<button
 									type="button"
 									onClick={() => setD(settingsAdvanced)}
-									className="inline-flex items-center px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+									className="inline-flex items-center px-3 py-1.5 rounded-[3px] text-small bg-transparent border border-transparent text-btn-bare-text hover:bg-btn-bare-bg-hover hover:text-btn-bare-text-hover"
 								>
 									Reset
 								</button>
 								<button
 									type="button"
-									className="inline-flex items-center px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+									className="inline-flex items-center px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 								>
 									Save
 								</button>

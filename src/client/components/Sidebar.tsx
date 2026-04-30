@@ -10,7 +10,7 @@ function fmtTime(d: Date) {
 	return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-function DaemonRow({
+function ProcessRow({
 	label,
 	value,
 }: {
@@ -67,37 +67,19 @@ export function Sidebar() {
 				style={{ borderColor: "rgba(255,255,255,0.08)" }}
 			>
 				<div className="flex items-center gap-2">
-					<div
-						className="flex flex-col items-center justify-center font-mono text-white flex-shrink-0"
-						style={{
-							width: 32,
-							height: 32,
-							borderRadius: 4,
-							background: "linear-gradient(135deg, #a368fc, #7a0ecc)",
-							lineHeight: 1,
-							padding: "2px 3px",
-						}}
-					>
-						<span style={{ fontSize: 6, opacity: 0.75 }}>63</span>
-						<span
-							style={{
-								fontSize: 15,
-								fontWeight: 800,
-								letterSpacing: "-0.04em",
-							}}
-						>
-							Ef
-						</span>
-						<span
-							style={{ fontSize: 5, opacity: 0.75, letterSpacing: "0.06em" }}
-						>
-							euroflow
-						</span>
-					</div>
+					<img
+						src="/logo-mark.svg"
+						width={32}
+						height={32}
+						alt=""
+						style={{ borderRadius: 2, flexShrink: 0 }}
+					/>
 					<div>
-						<div className="font-semibold text-sidebar-text-selected text-medium">
-							euroflow
-						</div>
+						<img
+							src="/wordmark.svg"
+							alt="euroflow"
+							style={{ height: 14, width: "auto", display: "block" }}
+						/>
 						<div
 							className="font-mono text-page-text-light"
 							style={{ fontSize: 11 }}
@@ -129,7 +111,7 @@ export function Sidebar() {
 				))}
 			</nav>
 
-			{/* Sync daemon card */}
+			{/* Sync status card */}
 			<div
 				className="px-4 py-3.5 border-t"
 				style={{ borderColor: "rgba(255,255,255,0.08)" }}
@@ -138,27 +120,20 @@ export function Sidebar() {
 					className="uppercase tracking-widest mb-2 text-sidebar-text"
 					style={{ fontSize: 11, opacity: 0.5 }}
 				>
-					Sync daemon
+					Sync process status
 				</div>
 				<div
 					className="font-mono text-sidebar-text"
 					style={{ fontSize: 12, lineHeight: 1.7 }}
 				>
-					<DaemonRow
+					<ProcessRow
 						label="status"
 						value={<span className={statusColor}>{statusLabel}</span>}
 					/>
-					<DaemonRow label="last" value={fmtTime(lastSyncAt)} />
-					<DaemonRow label="next" value={nextSyncIn} />
-					<DaemonRow label="accts" value={accountsCount} />
+					<ProcessRow label="last" value={fmtTime(lastSyncAt)} />
+					<ProcessRow label="next" value={nextSyncIn} />
+					<ProcessRow label="accts" value={accountsCount} />
 				</div>
-				<button
-					type="button"
-					className="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover cursor-pointer"
-				>
-					<Icons.Refresh size={14} />
-					Sync now
-				</button>
 			</div>
 		</aside>
 	);

@@ -69,7 +69,7 @@ function StatusPage() {
 	return (
 		<div className="h-full flex flex-col px-7 py-6 overflow-hidden">
 			{/* Page header */}
-			<div className="flex-shrink-0 flex items-start justify-between pb-5 mb-5 border-b border-table-border">
+			<div className="flex-shrink-0 flex items-end justify-between pb-5 mb-5 border-b border-table-border">
 				<div>
 					<div
 						className="font-mono text-page-text-subdued mb-1"
@@ -81,20 +81,12 @@ function StatusPage() {
 						Sync overview
 					</h1>
 				</div>
-				<div className="flex gap-2">
-					<Link
-						to="/log"
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
-					>
-						<Icons.Eye size={14} /> View daemon log
-					</Link>
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
-					>
-						<Icons.Refresh size={14} /> Sync now
-					</button>
-				</div>
+				<button
+					type="button"
+					className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+				>
+					<Icons.Refresh size={14} /> Sync now
+				</button>
 			</div>
 
 			{/* Sync status banner */}
@@ -175,7 +167,7 @@ function StatusPage() {
 			{/* Two-column layout — flex-1 so cards fill remaining height */}
 			<div
 				className="flex-1 min-h-0 grid gap-4"
-				style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1.6fr)" }}
+				style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)" }}
 			>
 				{/* Connected accounts */}
 				<div className="flex flex-col bg-card-bg border border-table-border rounded-[3px] overflow-hidden">
@@ -269,7 +261,7 @@ function StatusPage() {
 								className="font-mono text-page-text-subdued uppercase"
 								style={{ fontSize: 11, letterSpacing: "0.06em" }}
 							>
-								Showing last {recentRuns.length} of {syncRuns.length}
+								Showing last {recentRuns.length}
 							</div>
 						</div>
 						<Link

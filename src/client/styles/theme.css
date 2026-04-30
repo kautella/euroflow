@@ -71,6 +71,10 @@
 	--color-btn-normal-text: var(--navy150);
 	--color-btn-normal-border: var(--navy300);
 
+	--color-btn-bare-text: var(--page-text-light);
+	--color-btn-bare-text-hover: var(--page-text);
+	--color-btn-bare-bg-hover: rgba(255, 255, 255, 0.05);
+
 	--color-number-positive: #65d6ad;
 	--color-number-negative: #ff9b9b;
 	--color-number-neutral: var(--navy500);
