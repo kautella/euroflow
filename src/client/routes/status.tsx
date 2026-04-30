@@ -42,7 +42,7 @@ function StatusPage() {
 	const warn = accounts.filter((a) => a.status === "warn").length;
 	const err = accounts.filter((a) => a.status === "err").length;
 	const totalImported = syncRuns.reduce((s, r) => s + r.imported, 0);
-	const recentRuns = syncRuns.slice(0, 8);
+	const recentRuns = syncRuns.slice(0, 30);
 
 	const lastRun = syncRuns[0];
 	const syncBannerStatus = err > 0 ? "err" : warn > 0 || lastRun?.status !== "ok" ? "warn" : "ok";
@@ -264,7 +264,7 @@ function StatusPage() {
 								className="font-mono text-page-text-subdued uppercase"
 								style={{ fontSize: 11, letterSpacing: "0.06em" }}
 							>
-								Showing last 8 of {syncRuns.length}
+								Showing last {recentRuns.length} of {syncRuns.length}
 							</div>
 						</div>
 						<Link
