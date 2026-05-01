@@ -9,13 +9,10 @@ const BannerContext = createContext<BannerContextValue | null>(null);
 
 export function BannerProvider({ children }: { children: React.ReactNode }) {
 	const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-	const dismiss = (id: string) =>
-		setDismissed((s) => new Set(s).add(id));
+	const dismiss = (id: string) => setDismissed((s) => new Set(s).add(id));
 
 	return (
-		<BannerContext value={{ dismissed, dismiss }}>
-			{children}
-		</BannerContext>
+		<BannerContext value={{ dismissed, dismiss }}>{children}</BannerContext>
 	);
 }
 

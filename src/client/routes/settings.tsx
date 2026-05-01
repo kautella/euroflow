@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useBanners } from "../contexts/BannerContext";
 import { Icons } from "../components/Icon";
 import { ConfirmModal } from "../components/Modal";
 import { StatusPill } from "../components/StatusPill";
+import { useBanners } from "../contexts/BannerContext";
 import { type CertInfo, cert as seedCert } from "../seed/banks";
 import {
 	hasPassword,
@@ -970,14 +970,15 @@ function SettingsPage() {
 
 			{/* Security status banner */}
 			{!dismissed.has("settings-security") && (
-				<div
-					className={`flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono cursor-pointer ${bannerCls} border`}
+				<button
+					type="button"
+					className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono cursor-pointer text-left ${bannerCls} border`}
 					style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
 					onClick={() => dismiss("settings-security")}
 				>
 					<BannerIcon size={14} className="flex-shrink-0" />
 					<span>{bannerMsg}</span>
-				</div>
+				</button>
 			)}
 
 			<SecuritySection

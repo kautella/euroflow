@@ -17,7 +17,15 @@ const FILTERS: { id: Filter; label: string }[] = [
 	{ id: "err", label: "Errors" },
 ];
 
-const COLUMNS = ["Ran at", "Trigger", "Status", "Imported", "Skipped", "Message", "Duration"];
+const COLUMNS = [
+	"Ran at",
+	"Trigger",
+	"Status",
+	"Imported",
+	"Skipped",
+	"Message",
+	"Duration",
+];
 
 function LogPage() {
 	const [filter, setFilter] = useState<Filter>("all");
@@ -40,7 +48,7 @@ function LogPage() {
 						Sync history
 					</h1>
 				</div>
-		</div>
+			</div>
 
 			{/* Filter strip */}
 			<div className="flex-shrink-0 flex items-center justify-between px-4 py-2 mb-4 bg-card-bg border border-table-border rounded-[3px]">
@@ -97,10 +105,7 @@ function LogPage() {
 							{runs.map((r) => (
 								<tr key={r.id} className="hover:bg-table-row-hover">
 									<td className="font-mono px-4 py-2 whitespace-nowrap border-b border-r border-table-border align-top">
-										<div
-											className="text-page-text"
-											style={{ fontSize: 12 }}
-										>
+										<div className="text-page-text" style={{ fontSize: 12 }}>
 											{fmtDate(r.at)}
 										</div>
 										<div
