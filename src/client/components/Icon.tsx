@@ -4,6 +4,8 @@ import {
 	ArrowRight,
 	Bell,
 	Check,
+	ChevronsLeft,
+	ChevronsRight,
 	Eye,
 	FileText,
 	Landmark,
@@ -40,4 +42,6 @@ export const Icons = {
 	ShieldOff,
 	AlertTriangle,
 	File: FileText,
+	Collapse: ChevronsLeft,
+	Expand: ChevronsRight,
 };

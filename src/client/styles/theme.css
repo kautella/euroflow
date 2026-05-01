@@ -56,6 +56,7 @@
 	--color-table-header-text: var(--navy300);
 	--color-table-border: var(--navy600);
 	--color-table-border-selected: var(--purple400);
+	--color-table-header-border: var(--navy500);
 
 	--color-sidebar-bg: var(--navy900);
 	--color-sidebar-text: var(--navy150);
@@ -70,6 +71,10 @@
 	--color-btn-normal-bg-hover: var(--navy600);
 	--color-btn-normal-text: var(--navy150);
 	--color-btn-normal-border: var(--navy300);
+
+	--color-btn-bare-text: var(--page-text-light);
+	--color-btn-bare-text-hover: var(--page-text);
+	--color-btn-bare-bg-hover: rgba(255, 255, 255, 0.05);
 
 	--color-number-positive: #65d6ad;
 	--color-number-negative: #ff9b9b;
@@ -150,6 +155,7 @@
 	--color-table-header-text: var(--navy600);
 	--color-table-border: var(--navy200);
 	--color-table-border-selected: var(--purple400);
+	--color-table-header-border: var(--navy300);
 
 	--color-sidebar-bg: var(--navy900);
 	--color-sidebar-text: var(--navy150);
@@ -190,6 +196,7 @@
 	--color-table-header-text: #bdc5cf;
 	--color-table-border: #4d5768;
 	--color-table-border-selected: var(--purple300);
+	--color-table-header-border: #747c8b;
 
 	--color-sidebar-bg: #080811;
 	--color-sidebar-text: #d4dae0;

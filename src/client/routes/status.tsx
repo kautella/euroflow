@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Icons } from "../components/Icon";
 import { Readout } from "../components/Readout";
 import { StatusPill } from "../components/StatusPill";
+import { useBanners } from "../contexts/BannerContext";
 import { fmtDateTime, relTime } from "../lib/fmt";
 import { accounts, lastSync, nextSync, syncRuns } from "../seed/status";
 
@@ -38,6 +39,7 @@ function Kpi({
 }
 
 function StatusPage() {
+	const { dismissed, dismiss } = useBanners();
 	const ok = accounts.filter((a) => a.status === "ok").length;
 	const warn = accounts.filter((a) => a.status === "warn").length;
 	const err = accounts.filter((a) => a.status === "err").length;
@@ -69,7 +71,7 @@ function StatusPage() {
 	return (
 		<div className="h-full flex flex-col px-7 py-6 overflow-hidden">
 			{/* Page header */}
-			<div className="flex-shrink-0 flex items-start justify-between pb-5 mb-5 border-b border-table-border">
+			<div className="flex-shrink-0 flex items-end justify-between pb-5 mb-5 border-b border-table-border">
 				<div>
 					<div
 						className="font-mono text-page-text-subdued mb-1"
@@ -81,30 +83,20 @@ function StatusPage() {
 						Sync overview
 					</h1>
 				</div>
-				<div className="flex gap-2">
-					<Link
-						to="/log"
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
-					>
-						<Icons.Eye size={14} /> View daemon log
-					</Link>
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
-					>
-						<Icons.Refresh size={14} /> Sync now
-					</button>
-				</div>
 			</div>
 
 			{/* Sync status banner */}
-			<div
-				className={`flex-shrink-0 flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono border ${syncBannerCls}`}
-				style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
-			>
-				<SyncBannerIcon size={14} className="flex-shrink-0" />
-				<span>{syncBannerMsg}</span>
-			</div>
+			{!dismissed.has("sync-status") && (
+				<button
+					type="button"
+					className={`flex-shrink-0 w-full flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono border cursor-pointer text-left ${syncBannerCls}`}
+					style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
+					onClick={() => dismiss("sync-status")}
+				>
+					<SyncBannerIcon size={14} className="flex-shrink-0" />
+					<span>{syncBannerMsg}</span>
+				</button>
+			)}
 
 			{/* KPI strip */}
 			<div className="flex-shrink-0 bg-card-bg border border-table-border rounded-[3px] mb-4 overflow-hidden">
@@ -175,7 +167,7 @@ function StatusPage() {
 			{/* Two-column layout — flex-1 so cards fill remaining height */}
 			<div
 				className="flex-1 min-h-0 grid gap-4"
-				style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1.6fr)" }}
+				style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)" }}
 			>
 				{/* Connected accounts */}
 				<div className="flex flex-col bg-card-bg border border-table-border rounded-[3px] overflow-hidden">
@@ -269,7 +261,7 @@ function StatusPage() {
 								className="font-mono text-page-text-subdued uppercase"
 								style={{ fontSize: 11, letterSpacing: "0.06em" }}
 							>
-								Showing last {recentRuns.length} of {syncRuns.length}
+								Showing last {recentRuns.length}
 							</div>
 						</div>
 						<Link
@@ -280,15 +272,15 @@ function StatusPage() {
 						</Link>
 					</div>
 					<div className="flex-1 overflow-auto">
-						<table className="w-full border-collapse bg-table-bg">
+						<table className="w-full border-separate border-spacing-0 bg-table-bg">
 							<thead className="sticky top-0 z-10">
 								<tr className="bg-table-header-bg">
 									{["Ran at", "Status", "Imported", "Message", "Duration"].map(
 										(h) => (
 											<th
 												key={h}
-												className="font-mono text-table-header-text text-left px-4 py-2 border-b border-table-border bg-table-header-bg"
-												style={{ fontSize: 11, letterSpacing: "0.06em" }}
+												className="font-mono text-table-header-text uppercase text-left px-4 py-2 border-b border-r border-table-header-border bg-table-header-bg last:border-r-0"
+												style={{ fontSize: 11, letterSpacing: "0.08em" }}
 											>
 												{h}
 											</th>
@@ -298,33 +290,30 @@ function StatusPage() {
 							</thead>
 							<tbody>
 								{recentRuns.map((r) => (
-									<tr
-										key={r.id}
-										className="border-b border-table-border last:border-0 hover:bg-table-row-hover"
-									>
+									<tr key={r.id} className="hover:bg-table-row-hover">
 										<td
-											className="font-mono text-page-text px-4 py-2 whitespace-nowrap"
+											className="font-mono text-page-text px-4 py-2 whitespace-nowrap border-b border-r border-table-border"
 											style={{ fontSize: 12 }}
 										>
 											{fmtDateTime(r.at)}
 										</td>
-										<td className="px-4 py-2">
+										<td className="px-4 py-2 border-b border-r border-table-border">
 											<StatusPill status={r.status} label={r.statusLabel} />
 										</td>
 										<td
-											className={`font-mono text-right px-4 py-2 ${r.imported > 0 ? "text-status-ok" : "text-page-text-subdued"}`}
+											className={`font-mono text-right px-4 py-2 border-b border-r border-table-border ${r.imported > 0 ? "text-status-ok" : "text-page-text-subdued"}`}
 											style={{ fontSize: 12 }}
 										>
 											{r.imported > 0 ? `+${r.imported}` : "0"}
 										</td>
 										<td
-											className="font-mono text-page-text-light px-4 py-2"
+											className="font-mono text-page-text-light px-4 py-2 border-b border-r border-table-border"
 											style={{ fontSize: 12 }}
 										>
 											{r.message}
 										</td>
 										<td
-											className="font-mono text-page-text-subdued text-right px-4 py-2 whitespace-nowrap"
+											className="font-mono text-page-text-subdued text-right px-4 py-2 whitespace-nowrap border-b border-table-border"
 											style={{ fontSize: 12 }}
 										>
 											{r.durationMs}ms

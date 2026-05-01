@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Icons } from "../components/Icon";
 import { ConfirmModal, ModalShell } from "../components/Modal";
 import { StatusPill } from "../components/StatusPill";
+import { useBanners } from "../contexts/BannerContext";
 import {
 	banksCatalog,
 	type CatalogBank,
@@ -366,6 +367,7 @@ function BanksPage() {
 		id: string;
 		name: string;
 	} | null>(null);
+	const { dismissed: dismissedBanners, dismiss: dismissBanner } = useBanners();
 
 	const matches = useMemo(() => {
 		if (!searchQ) return [];
@@ -400,57 +402,85 @@ function BanksPage() {
 			</div>
 
 			{/* Status banners */}
-			<div className="flex flex-col gap-2 mb-5">
-				{!cert ? (
-					<div
-						className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-error-text border border-[rgba(255,155,155,0.3)] font-mono"
-						style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
-					>
-						<Icons.Lock size={14} className="flex-shrink-0" />
-						<span className="flex-1">
-							NO PSD2 CERTIFICATE — bank connections are disabled.
-						</span>
-						<a
-							href="/settings"
-							className="flex-shrink-0 px-2.5 py-1 rounded-[3px] font-medium bg-btn-normal-bg text-page-text-dark border border-page-text-light hover:bg-btn-normal-bg-hover"
-							style={{ fontSize: 11 }}
+			{(!dismissedBanners.has("cert") ||
+				(cert && totalNeedReauth > 0 && !dismissedBanners.has("reauth"))) && (
+				<div className="flex flex-col gap-5 mb-5">
+					{!dismissedBanners.has("cert") &&
+						(!cert ? (
+							<div
+								className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-error-text border border-[rgba(255,155,155,0.3)] font-mono"
+								style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
+							>
+								<Icons.Lock size={14} className="flex-shrink-0" />
+								<span className="flex-1">
+									NO PSD2 CERTIFICATE — bank connections are disabled.
+								</span>
+								<a
+									href="/settings"
+									className="flex-shrink-0 px-2.5 py-1 rounded-[3px] font-medium bg-btn-normal-bg text-page-text-dark border border-page-text-light hover:bg-btn-normal-bg-hover"
+									style={{ fontSize: 11 }}
+								>
+									Settings → Security
+								</a>
+								<button
+									type="button"
+									onClick={() => dismissBanner("cert")}
+									className="flex-shrink-0 text-current opacity-50 hover:opacity-100"
+									aria-label="Dismiss"
+								>
+									<Icons.X size={14} />
+								</button>
+							</div>
+						) : (
+							<div
+								className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-notice-text border border-notice-border font-mono"
+								style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
+							>
+								<Icons.Shield size={14} className="flex-shrink-0" />
+								<span className="flex-1">
+									PSD2 CERTIFICATE ACTIVE ·{" "}
+									{connectedBankGroups.flatMap((g) => g.accounts).length}{" "}
+									accounts connected · valid until {cert.expires}
+								</span>
+								<a
+									href="/settings"
+									className="flex-shrink-0 px-2.5 py-1 rounded-[3px] bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+									style={{ fontSize: 11 }}
+								>
+									Manage →
+								</a>
+								<button
+									type="button"
+									onClick={() => dismissBanner("cert")}
+									className="flex-shrink-0 text-current opacity-50 hover:opacity-100"
+									aria-label="Dismiss"
+								>
+									<Icons.X size={14} />
+								</button>
+							</div>
+						))}
+					{cert && totalNeedReauth > 0 && !dismissedBanners.has("reauth") && (
+						<div
+							className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-warning-text border border-warning-border font-mono"
+							style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
 						>
-							Settings → Security
-						</a>
-					</div>
-				) : (
-					<div
-						className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-notice-text border border-notice-border font-mono"
-						style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
-					>
-						<Icons.Shield size={14} className="flex-shrink-0" />
-						<span className="flex-1">
-							PSD2 CERTIFICATE ACTIVE ·{" "}
-							{connectedBankGroups.flatMap((g) => g.accounts).length} accounts
-							connected · valid until {cert.expires}
-						</span>
-						<a
-							href="/settings"
-							className="flex-shrink-0 px-2.5 py-1 rounded-[3px] bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
-							style={{ fontSize: 11 }}
-						>
-							Manage →
-						</a>
-					</div>
-				)}
-				{cert && totalNeedReauth > 0 && (
-					<div
-						className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent text-warning-text border border-warning-border font-mono"
-						style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
-					>
-						<Icons.AlertTriangle size={14} className="flex-shrink-0" />
-						<span>
-							{totalNeedReauth} ACCOUNT{totalNeedReauth > 1 ? "S" : ""} NEED
-							RE-AUTHENTICATION — consent expiring within 14 days.
-						</span>
-					</div>
-				)}
-			</div>
+							<Icons.AlertTriangle size={14} className="flex-shrink-0" />
+							<span className="flex-1">
+								{totalNeedReauth} ACCOUNT{totalNeedReauth > 1 ? "S" : ""} NEED
+								RE-AUTHENTICATION — consent expiring within 14 days.
+							</span>
+							<button
+								type="button"
+								onClick={() => dismissBanner("reauth")}
+								className="flex-shrink-0 text-current opacity-50 hover:opacity-100"
+								aria-label="Dismiss"
+							>
+								<Icons.X size={14} />
+							</button>
+						</div>
+					)}
+				</div>
+			)}
 
 			{/* Connect a new bank */}
 			<div className="bg-card-bg border border-table-border rounded-[3px] p-5 mb-6">
