@@ -272,15 +272,15 @@ function StatusPage() {
 						</Link>
 					</div>
 					<div className="flex-1 overflow-auto">
-						<table className="w-full border-collapse bg-table-bg">
+						<table className="w-full border-separate border-spacing-0 bg-table-bg">
 							<thead className="sticky top-0 z-10">
 								<tr className="bg-table-header-bg">
 									{["Ran at", "Status", "Imported", "Message", "Duration"].map(
 										(h) => (
 											<th
 												key={h}
-												className="font-mono text-table-header-text text-left px-4 py-2 border-b border-table-border bg-table-header-bg"
-												style={{ fontSize: 11, letterSpacing: "0.06em" }}
+												className="font-mono text-table-header-text uppercase text-left px-4 py-2 border-b border-r border-table-header-border bg-table-header-bg last:border-r-0"
+												style={{ fontSize: 11, letterSpacing: "0.08em" }}
 											>
 												{h}
 											</th>
@@ -292,31 +292,31 @@ function StatusPage() {
 								{recentRuns.map((r) => (
 									<tr
 										key={r.id}
-										className="border-b border-table-border last:border-0 hover:bg-table-row-hover"
+										className="hover:bg-table-row-hover"
 									>
 										<td
-											className="font-mono text-page-text px-4 py-2 whitespace-nowrap"
+											className="font-mono text-page-text px-4 py-2 whitespace-nowrap border-b border-r border-table-border"
 											style={{ fontSize: 12 }}
 										>
 											{fmtDateTime(r.at)}
 										</td>
-										<td className="px-4 py-2">
+										<td className="px-4 py-2 border-b border-r border-table-border">
 											<StatusPill status={r.status} label={r.statusLabel} />
 										</td>
 										<td
-											className={`font-mono text-right px-4 py-2 ${r.imported > 0 ? "text-status-ok" : "text-page-text-subdued"}`}
+											className={`font-mono text-right px-4 py-2 border-b border-r border-table-border ${r.imported > 0 ? "text-status-ok" : "text-page-text-subdued"}`}
 											style={{ fontSize: 12 }}
 										>
 											{r.imported > 0 ? `+${r.imported}` : "0"}
 										</td>
 										<td
-											className="font-mono text-page-text-light px-4 py-2"
+											className="font-mono text-page-text-light px-4 py-2 border-b border-r border-table-border"
 											style={{ fontSize: 12 }}
 										>
 											{r.message}
 										</td>
 										<td
-											className="font-mono text-page-text-subdued text-right px-4 py-2 whitespace-nowrap"
+											className="font-mono text-page-text-subdued text-right px-4 py-2 whitespace-nowrap border-b border-table-border"
 											style={{ fontSize: 12 }}
 										>
 											{r.durationMs}ms

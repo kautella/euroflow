@@ -56,6 +56,7 @@
 	--color-table-header-text: var(--navy300);
 	--color-table-border: var(--navy600);
 	--color-table-border-selected: var(--purple400);
+	--color-table-header-border: var(--navy500);
 
 	--color-sidebar-bg: var(--navy900);
 	--color-sidebar-text: var(--navy150);
@@ -154,6 +155,7 @@
 	--color-table-header-text: var(--navy600);
 	--color-table-border: var(--navy200);
 	--color-table-border-selected: var(--purple400);
+	--color-table-header-border: var(--navy300);
 
 	--color-sidebar-bg: var(--navy900);
 	--color-sidebar-text: var(--navy150);
@@ -194,6 +196,7 @@
 	--color-table-header-text: #bdc5cf;
 	--color-table-border: #4d5768;
 	--color-table-border-selected: var(--purple300);
+	--color-table-header-border: #747c8b;
 
 	--color-sidebar-bg: #080811;
 	--color-sidebar-text: #d4dae0;
