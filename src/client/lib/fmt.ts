@@ -10,6 +10,14 @@ export function fmtUTC(d: Date) {
 	return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
 }
 
+export function fmtDate(d: Date) {
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+export function fmtTime(d: Date) {
+	return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 export function relTime(d: Date) {
 	const diff = Math.floor((Date.now() - d.getTime()) / 1000);
 	if (diff < 60) return `${diff}s ago`;

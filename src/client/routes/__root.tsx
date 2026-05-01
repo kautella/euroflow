@@ -1,10 +1,12 @@
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { BannerProvider } from "../contexts/BannerContext";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 
 function AppShell() {
 	return (
+		<BannerProvider>
 		<Tooltip.Provider delayDuration={300}>
 			<div className="flex flex-col h-screen bg-page-bg text-page-text">
 				<Topbar />
@@ -22,6 +24,7 @@ function AppShell() {
 				</div>
 			</div>
 		</Tooltip.Provider>
+		</BannerProvider>
 	);
 }
 

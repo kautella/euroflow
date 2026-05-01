@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Icons } from "../components/Icon";
+import { useBanners } from "../contexts/BannerContext";
 import { Readout } from "../components/Readout";
 import { StatusPill } from "../components/StatusPill";
 import { fmtDateTime, relTime } from "../lib/fmt";
@@ -38,6 +39,7 @@ function Kpi({
 }
 
 function StatusPage() {
+	const { dismissed, dismiss } = useBanners();
 	const ok = accounts.filter((a) => a.status === "ok").length;
 	const warn = accounts.filter((a) => a.status === "warn").length;
 	const err = accounts.filter((a) => a.status === "err").length;
@@ -81,22 +83,19 @@ function StatusPage() {
 						Sync overview
 					</h1>
 				</div>
-				<button
-					type="button"
-					className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
-				>
-					<Icons.Refresh size={14} /> Sync now
-				</button>
-			</div>
+		</div>
 
 			{/* Sync status banner */}
-			<div
-				className={`flex-shrink-0 flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono border ${syncBannerCls}`}
-				style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
-			>
-				<SyncBannerIcon size={14} className="flex-shrink-0" />
-				<span>{syncBannerMsg}</span>
-			</div>
+			{!dismissed.has("sync-status") && (
+				<div
+					className={`flex-shrink-0 flex items-center gap-3 px-3 py-2.5 rounded-[3px] bg-transparent mb-5 font-mono border cursor-pointer ${syncBannerCls}`}
+					style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
+					onClick={() => dismiss("sync-status")}
+				>
+					<SyncBannerIcon size={14} className="flex-shrink-0" />
+					<span>{syncBannerMsg}</span>
+				</div>
+			)}
 
 			{/* KPI strip */}
 			<div className="flex-shrink-0 bg-card-bg border border-table-border rounded-[3px] mb-4 overflow-hidden">
