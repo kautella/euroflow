@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { Cron } from "croner";
+import { useEffect, useMemo, useState } from "react";
 import { Icons } from "../components/Icon";
 import { ConfirmModal } from "../components/Modal";
 import { StatusPill } from "../components/StatusPill";
@@ -228,16 +229,28 @@ export function SecuritySection({
 		setConfirm("");
 	};
 
+	// When embedded in wizard, reflect password state reactively
+	useEffect(() => {
+		if (embedded) setHp(canSave);
+	}, [embedded, canSave, setHp]);
+
 	const inner = (
 		<div className="flex flex-col gap-5">
 			{/* Password */}
 			<div>
 				<div
-					className="font-mono text-form-label-text uppercase mb-3"
+					className="font-mono text-form-label-text uppercase mb-1"
 					style={{ fontSize: 11, letterSpacing: "0.06em" }}
 				>
 					Web UI password
 				</div>
+				{embedded && (
+					<div className="text-page-text-subdued mb-3" style={{ fontSize: 12 }}>
+						Leave blank to allow open access — anyone on your network can use
+						euroflow.
+					</div>
+				)}
+				{!embedded && <div className="mb-3" />}
 				<FormGrid>
 					<Field label={hp ? "New password" : "Set password"}>
 						<input
@@ -263,29 +276,31 @@ export function SecuritySection({
 						)}
 					</Field>
 				</FormGrid>
-				<div className="flex items-center justify-end gap-2 mt-3">
-					{hp && (
+				{!embedded && (
+					<div className="flex items-center justify-end gap-2 mt-3">
+						{hp && (
+							<button
+								type="button"
+								onClick={() => {
+									setHp(false);
+									setPw("");
+									setConfirm("");
+								}}
+								className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-transparent text-error-text border border-[rgba(255,155,155,0.3)] hover:bg-[rgba(255,155,155,0.08)] hover:border-error-border"
+							>
+								Remove password
+							</button>
+						)}
 						<button
 							type="button"
-							onClick={() => {
-								setHp(false);
-								setPw("");
-								setConfirm("");
-							}}
-							className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-transparent text-error-text border border-[rgba(255,155,155,0.3)] hover:bg-[rgba(255,155,155,0.08)] hover:border-error-border"
+							onClick={save}
+							disabled={!canSave}
+							className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover disabled:opacity-40"
 						>
-							Remove password
+							{hp ? "Update password" : "Set password"}
 						</button>
-					)}
-					<button
-						type="button"
-						onClick={save}
-						disabled={!canSave}
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover disabled:opacity-40"
-					>
-						{hp ? "Update password" : "Set password"}
-					</button>
-				</div>
+					</div>
+				)}
 			</div>
 
 			{/* PSD2 certificate */}
@@ -296,26 +311,24 @@ export function SecuritySection({
 				>
 					PSD2 client certificate (QWAC)
 				</div>
-				<div className="flex items-center gap-3">
-					<div className="flex-1">
-						{certInfo ? (
-							<div
-								className="font-mono text-page-text-light"
-								style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
-							>
-								CN={certInfo.cn} · ISSUED BY {certInfo.issuer} · EXPIRES{" "}
-								{certInfo.expires}
-							</div>
-						) : (
-							<div
-								className="font-mono text-page-text-subdued"
-								style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
-							>
-								No certificate uploaded.
-							</div>
-						)}
-					</div>
-					<label className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small cursor-pointer bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover">
+				<div className="flex flex-col gap-3">
+					{certInfo ? (
+						<div
+							className="font-mono text-page-text-light"
+							style={{ fontSize: 12, letterSpacing: "0.04em" }}
+						>
+							CN={certInfo.cn} · ISSUED BY {certInfo.issuer} · EXPIRES{" "}
+							{certInfo.expires}
+						</div>
+					) : (
+						<div
+							className="font-mono text-page-text-subdued"
+							style={{ fontSize: 12, letterSpacing: "0.04em" }}
+						>
+							No certificate uploaded.
+						</div>
+					)}
+					<label className="self-start flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small cursor-pointer text-btn-bare-text hover:bg-btn-bare-bg-hover hover:text-btn-bare-text-hover">
 						<Icons.Upload size={14} />
 						{certInfo ? "Replace .pem" : "Upload .pem"}
 						<input
@@ -341,8 +354,21 @@ export function SecuritySection({
 	);
 }
 
-export function ActualSection({ embedded }: { embedded?: boolean }) {
-	const [d, setD] = useState<SettingsActual>(settingsActual);
+export function ActualSection({
+	embedded,
+	value: valueProp,
+	onChange,
+}: {
+	embedded?: boolean;
+	value?: SettingsActual;
+	onChange?: (v: SettingsActual) => void;
+}) {
+	const [dLocal, setDLocal] = useState<SettingsActual>(settingsActual);
+	const d = valueProp ?? dLocal;
+	const setD = (v: SettingsActual) => {
+		setDLocal(v);
+		onChange?.(v);
+	};
 	const dirty = JSON.stringify(d) !== JSON.stringify(settingsActual);
 	const [testing, setTesting] = useState<null | "pending" | "ok" | "err">(null);
 
@@ -362,7 +388,7 @@ export function ActualSection({ embedded }: { embedded?: boolean }) {
 					<input
 						className={inputCls}
 						value={d.url}
-						placeholder="https://actual.example.com"
+						placeholder="http://localhost:5006"
 						onChange={(e) => setD({ ...d, url: e.target.value })}
 					/>
 				</Field>
@@ -370,6 +396,7 @@ export function ActualSection({ embedded }: { embedded?: boolean }) {
 					<input
 						className={inputCls}
 						type="password"
+						placeholder="Actual server password"
 						value={d.password}
 						onChange={(e) => setD({ ...d, password: e.target.value })}
 					/>
@@ -446,8 +473,23 @@ export function ActualSection({ embedded }: { embedded?: boolean }) {
 	);
 }
 
-export function NotificationsSection({ embedded }: { embedded?: boolean }) {
-	const [d, setD] = useState<SettingsNotifications>(settingsNotifications);
+export function NotificationsSection({
+	embedded,
+	value: valueProp,
+	onChange,
+}: {
+	embedded?: boolean;
+	value?: SettingsNotifications;
+	onChange?: (v: SettingsNotifications) => void;
+}) {
+	const [dLocal, setDLocal] = useState<SettingsNotifications>(
+		settingsNotifications,
+	);
+	const d = valueProp ?? dLocal;
+	const setD = (v: SettingsNotifications) => {
+		setDLocal(v);
+		onChange?.(v);
+	};
 	const dirty = JSON.stringify(d) !== JSON.stringify(settingsNotifications);
 
 	const inner = (
@@ -481,6 +523,23 @@ export function NotificationsSection({ embedded }: { embedded?: boolean }) {
 
 				{d.email && (
 					<>
+						<Field label="SMTP user">
+							<input
+								className={inputCls}
+								autoComplete="username"
+								value={d.smtpUser}
+								onChange={(e) => setD({ ...d, smtpUser: e.target.value })}
+							/>
+						</Field>
+						<Field label="SMTP password">
+							<input
+								className={inputCls}
+								type="password"
+								autoComplete="current-password"
+								value={d.smtpPass}
+								onChange={(e) => setD({ ...d, smtpPass: e.target.value })}
+							/>
+						</Field>
 						<Field label="SMTP host">
 							<input
 								className={inputCls}
@@ -495,21 +554,6 @@ export function NotificationsSection({ embedded }: { embedded?: boolean }) {
 								value={d.smtpPort}
 								style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}
 								onChange={(e) => setD({ ...d, smtpPort: e.target.value })}
-							/>
-						</Field>
-						<Field label="SMTP user">
-							<input
-								className={inputCls}
-								value={d.smtpUser}
-								onChange={(e) => setD({ ...d, smtpUser: e.target.value })}
-							/>
-						</Field>
-						<Field label="SMTP password">
-							<input
-								className={inputCls}
-								type="password"
-								value={d.smtpPass}
-								onChange={(e) => setD({ ...d, smtpPass: e.target.value })}
 							/>
 						</Field>
 						<Field label="From address" full>
@@ -569,12 +613,12 @@ export function NotificationsSection({ embedded }: { embedded?: boolean }) {
 							onChange={(v) => setD({ ...d, onFailure: v })}
 						/>
 						<CheckRow
-							label="Session is about to expire (≤ 7 days)"
+							label="Authentication is about to expire (≤ 7 days)"
 							checked={d.onExpiring}
 							onChange={(v) => setD({ ...d, onExpiring: v })}
 						/>
 						<CheckRow
-							label="Session has expired"
+							label="Authentication has expired"
 							checked={d.onExpired}
 							onChange={(v) => setD({ ...d, onExpired: v })}
 						/>
@@ -618,17 +662,53 @@ export function NotificationsSection({ embedded }: { embedded?: boolean }) {
 	);
 }
 
-export function ScheduleSection({ embedded }: { embedded?: boolean }) {
-	const [d, setD] = useState<SettingsSchedule>(settingsSchedule);
+export function ScheduleSection({
+	embedded,
+	value: valueProp,
+	onChange,
+}: {
+	embedded?: boolean;
+	value?: SettingsSchedule;
+	onChange?: (v: SettingsSchedule) => void;
+}) {
+	const [dLocal, setDLocal] = useState<SettingsSchedule>(settingsSchedule);
+	const d = valueProp ?? dLocal;
+	const setD = (v: SettingsSchedule) => {
+		setDLocal(v);
+		onChange?.(v);
+	};
 	const dirty = JSON.stringify(d) !== JSON.stringify(settingsSchedule);
 
 	const [h, m] = d.anchorTime.split(":").map(Number);
 	const cronExpr =
-		d.frequency === "24h"
-			? `0 ${m} ${h} * * *`
-			: d.frequency === "12h"
-				? `0 ${m} ${h}/12 * * *`
-				: `0 ${m} ${h}/6 * * *`;
+		d.frequency === "custom"
+			? d.customCron
+			: d.frequency === "24h"
+				? `0 ${m} ${h} * * *`
+				: d.frequency === "12h"
+					? `0 ${m} ${h},${(h + 12) % 24} * * *`
+					: d.frequency === "6h"
+						? `0 ${m} ${h},${(h + 6) % 24},${(h + 12) % 24},${(h + 18) % 24} * * *`
+						: `0 ${m} * * * *`;
+
+	const nextRun = useMemo(() => {
+		try {
+			const next = new Cron(cronExpr, { timezone: d.timezone }).nextRun();
+			if (!next) return null;
+			const fmt = new Intl.DateTimeFormat("en-CA", {
+				timeZone: d.timezone,
+				year: "numeric",
+				month: "2-digit",
+				day: "2-digit",
+				hour: "2-digit",
+				minute: "2-digit",
+				hour12: false,
+			});
+			return fmt.format(next).replace(", ", " ");
+		} catch {
+			return null;
+		}
+	}, [cronExpr, d.timezone]);
 
 	const timezones = [
 		"Europe/Lisbon",
@@ -640,12 +720,23 @@ export function ScheduleSection({ embedded }: { embedded?: boolean }) {
 		"Europe/Rome",
 		"Europe/Helsinki",
 		"UTC",
-	];
+	].map((tz) => {
+		const offset =
+			new Intl.DateTimeFormat("en", {
+				timeZone: tz,
+				timeZoneName: "shortOffset",
+			})
+				.formatToParts(new Date())
+				.find((p) => p.type === "timeZoneName")?.value ?? tz;
+		return { value: tz, label: `${tz.replace("Europe/", "")} (${offset})` };
+	});
 
 	const freqs: { value: SettingsSchedule["frequency"]; label: string }[] = [
+		{ value: "1h", label: "Hourly" },
 		{ value: "6h", label: "Every 6 hours" },
 		{ value: "12h", label: "Every 12 hours" },
 		{ value: "24h", label: "Daily" },
+		{ value: "custom", label: "Custom" },
 	];
 
 	const inner = (
@@ -663,7 +754,15 @@ export function ScheduleSection({ embedded }: { embedded?: boolean }) {
 							<button
 								key={value}
 								type="button"
-								onClick={() => setD({ ...d, frequency: value })}
+								onClick={() =>
+									setD({
+										...d,
+										frequency: value,
+										...(value === "custom" && d.frequency !== "custom"
+											? { customCron: cronExpr }
+											: {}),
+									})
+								}
 								className={`px-3.5 py-1.5 text-small border-r border-table-border last:border-r-0 ${
 									d.frequency === value
 										? "bg-btn-primary-bg text-btn-primary-text"
@@ -676,18 +775,20 @@ export function ScheduleSection({ embedded }: { embedded?: boolean }) {
 					</div>
 				</div>
 
-				<Field
-					label="Anchor time"
-					help="First run of the day. Subsequent runs space out from here."
-				>
-					<input
-						className={inputCls}
-						type="time"
-						value={d.anchorTime}
-						style={{ fontFamily: "var(--font-mono)" }}
-						onChange={(e) => setD({ ...d, anchorTime: e.target.value })}
-					/>
-				</Field>
+				{d.frequency !== "custom" && (
+					<Field
+						label="Anchor time"
+						help="First run of the day. Subsequent runs space out from here."
+					>
+						<input
+							className={inputCls}
+							type="time"
+							value={d.anchorTime}
+							style={{ fontFamily: "var(--font-mono)" }}
+							onChange={(e) => setD({ ...d, anchorTime: e.target.value })}
+						/>
+					</Field>
+				)}
 				<Field label="Timezone">
 					<select
 						className={selectCls}
@@ -695,20 +796,39 @@ export function ScheduleSection({ embedded }: { embedded?: boolean }) {
 						onChange={(e) => setD({ ...d, timezone: e.target.value })}
 					>
 						{timezones.map((z) => (
-							<option key={z} value={z}>
-								{z}
+							<option key={z.value} value={z.value}>
+								{z.label}
 							</option>
 						))}
 					</select>
 				</Field>
 
 				<div style={{ gridColumn: "1 / -1" }}>
-					<pre
-						className="font-mono text-page-text-light bg-table-bg border border-table-border rounded-[3px] p-3"
-						style={{ fontSize: 11, lineHeight: 1.7 }}
+					{d.frequency === "custom" ? (
+						<textarea
+							className="font-mono text-page-text-light bg-table-bg border border-table-border rounded-[3px] p-3 w-full resize-none focus:outline-none focus:border-btn-primary-bg"
+							style={{ fontSize: 11, lineHeight: 1.7 }}
+							rows={1}
+							spellCheck={false}
+							value={d.customCron}
+							onChange={(e) => setD({ ...d, customCron: e.target.value })}
+						/>
+					) : (
+						<pre
+							className="font-mono text-page-text-light bg-table-bg border border-table-border rounded-[3px] p-3"
+							style={{ fontSize: 11, lineHeight: 1.7 }}
+						>
+							{`CRON  ${cronExpr}`}
+						</pre>
+					)}
+					<div
+						className="font-mono text-page-text-subdued mt-2"
+						style={{ fontSize: 11 }}
 					>
-						{`CRON  ${cronExpr}\nNEXT  ${new Date(Date.now() + 6 * 3600 * 1000).toISOString().replace("T", " ").slice(0, 16)} ${d.timezone.replace("Europe/", "").toUpperCase()}`}
-					</pre>
+						{nextRun
+							? `NEXT  ${nextRun} ${d.timezone.replace("Europe/", "").toUpperCase()}`
+							: "NEXT  — invalid expression"}
+					</div>
 				</div>
 
 				<div
