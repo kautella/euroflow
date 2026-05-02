@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Cron } from "croner";
 import { useEffect, useMemo, useState } from "react";
 import { Icons } from "../components/Icon";
 import { ConfirmModal } from "../components/Modal";
 import { StatusPill } from "../components/StatusPill";
 import { useBanners } from "../contexts/BannerContext";
+import { nextRunFormatted, scheduleToCron } from "../lib/schedule";
 import { type CertInfo, cert as seedCert } from "../seed/banks";
 import {
 	hasPassword,
@@ -666,36 +666,11 @@ export function ScheduleSection({
 	onReset?: () => void;
 	standalone?: boolean;
 }) {
-	const [h, m] = d.anchorTime.split(":").map(Number);
-	const cronExpr =
-		d.frequency === "custom"
-			? d.customCron
-			: d.frequency === "24h"
-				? `0 ${m} ${h} * * *`
-				: d.frequency === "12h"
-					? `0 ${m} ${h},${(h + 12) % 24} * * *`
-					: d.frequency === "6h"
-						? `0 ${m} ${h},${(h + 6) % 24},${(h + 12) % 24},${(h + 18) % 24} * * *`
-						: `0 ${m} * * * *`;
-
-	const nextRun = useMemo(() => {
-		try {
-			const next = new Cron(cronExpr, { timezone: d.timezone }).nextRun();
-			if (!next) return null;
-			const fmt = new Intl.DateTimeFormat("en-CA", {
-				timeZone: d.timezone,
-				year: "numeric",
-				month: "2-digit",
-				day: "2-digit",
-				hour: "2-digit",
-				minute: "2-digit",
-				hour12: false,
-			});
-			return fmt.format(next).replace(", ", " ");
-		} catch {
-			return null;
-		}
-	}, [cronExpr, d.timezone]);
+	const cronExpr = scheduleToCron(d);
+	const nextRun = useMemo(
+		() => nextRunFormatted(cronExpr, d.timezone),
+		[cronExpr, d.timezone],
+	);
 
 	const timezones = [
 		"Europe/Lisbon",
