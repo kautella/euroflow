@@ -23,7 +23,8 @@ export type SettingsNotifications = {
 };
 
 export type SettingsSchedule = {
-	frequency: "6h" | "12h" | "24h";
+	frequency: "1h" | "6h" | "12h" | "24h" | "custom";
+	customCron: string;
 	anchorTime: string;
 	timezone: string;
 	catchUp: boolean;
@@ -41,9 +42,9 @@ export type SettingsAdvanced = {
 };
 
 export const settingsActual: SettingsActual = {
-	url: "https://actual.example.com",
-	password: "••••••••",
-	syncId: "00000000-0000-0000-0000-000000000000",
+	url: "",
+	password: "",
+	syncId: "",
 	e2ePassword: "",
 };
 
@@ -65,7 +66,8 @@ export const settingsNotifications: SettingsNotifications = {
 };
 
 export const settingsSchedule: SettingsSchedule = {
-	frequency: "6h",
+	frequency: "1h",
+	customCron: "0 0 6,12,18,0 * * *",
 	anchorTime: "06:00",
 	timezone: "Europe/Lisbon",
 	catchUp: true,
@@ -83,3 +85,4 @@ export const settingsAdvanced: SettingsAdvanced = {
 };
 
 export const hasPassword = true;
+export const isConfigured = false;
