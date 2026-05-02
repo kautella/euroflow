@@ -1,15 +1,17 @@
 import { createContext, useContext, useState } from "react";
 
+export type BannerId = "settings-security" | "cert" | "reauth" | "sync-status";
+
 type BannerContextValue = {
-	dismissed: Set<string>;
-	dismiss: (id: string) => void;
+	dismissed: Set<BannerId>;
+	dismiss: (id: BannerId) => void;
 };
 
 const BannerContext = createContext<BannerContextValue | null>(null);
 
 export function BannerProvider({ children }: { children: React.ReactNode }) {
-	const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-	const dismiss = (id: string) => setDismissed((s) => new Set(s).add(id));
+	const [dismissed, setDismissed] = useState<Set<BannerId>>(new Set());
+	const dismiss = (id: BannerId) => setDismissed((s) => new Set(s).add(id));
 
 	return (
 		<BannerContext value={{ dismissed, dismiss }}>{children}</BannerContext>
