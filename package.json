@@ -28,6 +28,7 @@
 		"@tanstack/react-router": "^1.168.26",
 		"@tanstack/router-vite-plugin": "^1.166.44",
 		"better-sqlite3": "^12.9.0",
+		"croner": "^10.0.1",
 		"drizzle-orm": "^0.45.2",
 		"express": "^5.2.1",
 		"lucide-react": "^1.14.0",

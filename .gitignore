@@ -1,5 +1,6 @@
 # agents
 .agents/
+.claude/
 
 # database
 data/
