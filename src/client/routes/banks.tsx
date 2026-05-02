@@ -1,13 +1,17 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Icons } from "../components/Icon";
 import { ConfirmModal, ModalShell } from "../components/Modal";
 import { StatusPill } from "../components/StatusPill";
 import { useBanners } from "../contexts/BannerContext";
 import {
+	OAUTH_REDIRECT_DELAY_MS,
+	type OAuthState,
+	oauthAdvance,
+} from "../lib/oauth";
+import {
 	banksCatalog,
-	type CatalogBank,
 	type ConnectedAccount,
 	cert,
 	connectedBankGroups,
@@ -24,37 +28,24 @@ function ExpiryPill({ days }: { days: number }) {
 	return <StatusPill status={status} label={label} />;
 }
 
-type OAuthState = {
-	bank: CatalogBank;
-	step: 1 | 2 | 3;
-	reauth?: boolean;
-} | null;
-
 function OAuthModal({
 	oauth,
+	onNext,
 	onClose,
 }: {
-	oauth: OAuthState;
+	oauth: OAuthState | null;
+	onNext: () => void;
 	onClose: () => void;
 }) {
-	const [state, setState] = useState<OAuthState>(oauth);
-
-	// sync external changes (e.g. opening for different bank)
-	const prevOauth = useRef(oauth);
-	if (oauth !== prevOauth.current) {
-		prevOauth.current = oauth;
-		setState(oauth);
-	}
-
 	useEffect(() => {
-		if (state?.step === 2) {
-			const t = setTimeout(() => setState((s) => s && { ...s, step: 3 }), 1800);
+		if (oauth?.step === 2) {
+			const t = setTimeout(onNext, OAUTH_REDIRECT_DELAY_MS);
 			return () => clearTimeout(t);
 		}
-	}, [state?.step]);
+	}, [oauth?.step, onNext]);
 
-	if (!state) return null;
-	const { bank, step, reauth } = state;
+	if (!oauth) return null;
+	const { bank, step, reauth } = oauth;
 	const steps = ["Consent", "Authorise at bank", "Map accounts"];
 
 	return (
@@ -295,7 +286,7 @@ function OAuthModal({
 					{step === 1 && (
 						<button
 							type="button"
-							onClick={() => setState((s) => s && { ...s, step: 2 })}
+							onClick={onNext}
 							className="px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
 						>
 							Continue at bank →
@@ -690,7 +681,11 @@ function BanksPage() {
 			})}
 
 			{/* OAuth modal */}
-			<OAuthModal oauth={oauth} onClose={() => setOauth(null)} />
+			<OAuthModal
+				oauth={oauth}
+				onNext={() => setOauth((s) => s && oauthAdvance(s))}
+				onClose={() => setOauth(null)}
+			/>
 
 			{/* Disconnect confirm modal */}
 			<ConfirmModal
