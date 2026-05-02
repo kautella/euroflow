@@ -199,40 +199,34 @@ function SectionActions({
 // ---- Exported sections (shared with wizard) ----
 
 export function SecuritySection({
-	embedded,
-	hp: hpProp,
-	setHp: setHpProp,
-	certInfo: certProp,
-	setCertInfo: setCertProp,
+	hp,
+	setHp,
+	certInfo,
+	setCertInfo,
+	onValidPasswordChange,
+	standalone = false,
 }: {
-	embedded?: boolean;
-	hp?: boolean;
-	setHp?: (v: boolean) => void;
-	certInfo?: CertInfo | null;
-	setCertInfo?: (v: CertInfo | null) => void;
+	hp: boolean;
+	setHp: (v: boolean) => void;
+	certInfo: CertInfo | null;
+	setCertInfo: (v: CertInfo | null) => void;
+	onValidPasswordChange?: (hasValidPassword: boolean) => void;
+	standalone?: boolean;
 }) {
-	const [hpLocal, setHpLocal] = useState(hasPassword);
-	const [certLocal, setCertLocal] = useState<CertInfo | null>(seedCert);
-	const hp = hpProp ?? hpLocal;
-	const setHp = setHpProp ?? setHpLocal;
-	const certInfo = certProp ?? certLocal;
-	const setCertInfo = setCertProp ?? setCertLocal;
-
 	const [pw, setPw] = useState("");
 	const [confirm, setConfirm] = useState("");
 	const mismatch = pw !== confirm && confirm.length > 0;
 	const canSave = pw.length > 0 && !mismatch;
+
+	useEffect(() => {
+		onValidPasswordChange?.(canSave);
+	}, [canSave, onValidPasswordChange]);
 
 	const save = () => {
 		setHp(true);
 		setPw("");
 		setConfirm("");
 	};
-
-	// When embedded in wizard, reflect password state reactively
-	useEffect(() => {
-		if (embedded) setHp(canSave);
-	}, [embedded, canSave, setHp]);
 
 	const inner = (
 		<div className="flex flex-col gap-5">
@@ -244,13 +238,13 @@ export function SecuritySection({
 				>
 					Web UI password
 				</div>
-				{embedded && (
+				{!standalone && (
 					<div className="text-page-text-subdued mb-3" style={{ fontSize: 12 }}>
 						Leave blank to allow open access — anyone on your network can use
 						euroflow.
 					</div>
 				)}
-				{!embedded && <div className="mb-3" />}
+				{standalone && <div className="mb-3" />}
 				<FormGrid>
 					<Field label={hp ? "New password" : "Set password"}>
 						<input
@@ -276,7 +270,7 @@ export function SecuritySection({
 						)}
 					</Field>
 				</FormGrid>
-				{!embedded && (
+				{standalone && (
 					<div className="flex items-center justify-end gap-2 mt-3">
 						{hp && (
 							<button
@@ -343,7 +337,7 @@ export function SecuritySection({
 		</div>
 	);
 
-	if (embedded) return inner;
+	if (!standalone) return inner;
 	return (
 		<SectionCard
 			title="Security"
@@ -355,21 +349,20 @@ export function SecuritySection({
 }
 
 export function ActualSection({
-	embedded,
-	value: valueProp,
+	value: d,
 	onChange,
+	dirty = false,
+	onSave,
+	onReset,
+	standalone = false,
 }: {
-	embedded?: boolean;
-	value?: SettingsActual;
-	onChange?: (v: SettingsActual) => void;
+	value: SettingsActual;
+	onChange: (v: SettingsActual) => void;
+	dirty?: boolean;
+	onSave?: () => void;
+	onReset?: () => void;
+	standalone?: boolean;
 }) {
-	const [dLocal, setDLocal] = useState<SettingsActual>(settingsActual);
-	const d = valueProp ?? dLocal;
-	const setD = (v: SettingsActual) => {
-		setDLocal(v);
-		onChange?.(v);
-	};
-	const dirty = JSON.stringify(d) !== JSON.stringify(settingsActual);
 	const [testing, setTesting] = useState<null | "pending" | "ok" | "err">(null);
 
 	const test = () => {
@@ -389,7 +382,7 @@ export function ActualSection({
 						className={inputCls}
 						value={d.url}
 						placeholder="http://localhost:5006"
-						onChange={(e) => setD({ ...d, url: e.target.value })}
+						onChange={(e) => onChange({ ...d, url: e.target.value })}
 					/>
 				</Field>
 				<Field label="Server password">
@@ -398,7 +391,7 @@ export function ActualSection({
 						type="password"
 						placeholder="Actual server password"
 						value={d.password}
-						onChange={(e) => setD({ ...d, password: e.target.value })}
+						onChange={(e) => onChange({ ...d, password: e.target.value })}
 					/>
 				</Field>
 				<Field
@@ -410,7 +403,7 @@ export function ActualSection({
 						value={d.syncId}
 						placeholder="00000000-0000-0000-0000-000000000000"
 						style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}
-						onChange={(e) => setD({ ...d, syncId: e.target.value })}
+						onChange={(e) => onChange({ ...d, syncId: e.target.value })}
 					/>
 				</Field>
 				<Field label="E2E encryption password (if enabled)" full>
@@ -418,16 +411,16 @@ export function ActualSection({
 						className={inputCls}
 						type="password"
 						value={d.e2ePassword}
-						onChange={(e) => setD({ ...d, e2ePassword: e.target.value })}
+						onChange={(e) => onChange({ ...d, e2ePassword: e.target.value })}
 					/>
 				</Field>
 			</FormGrid>
 
-			{!embedded && (
+			{standalone && (
 				<SectionActions
 					dirty={dirty}
-					onReset={() => setD(settingsActual)}
-					onSave={() => {}}
+					onReset={onReset ?? (() => {})}
+					onSave={onSave ?? (() => {})}
 					extra={
 						<div className="flex items-center gap-3">
 							<button
@@ -462,7 +455,7 @@ export function ActualSection({
 		</div>
 	);
 
-	if (embedded) return inner;
+	if (!standalone) return inner;
 	return (
 		<SectionCard
 			title="Actual Budget"
@@ -474,24 +467,20 @@ export function ActualSection({
 }
 
 export function NotificationsSection({
-	embedded,
-	value: valueProp,
+	value: d,
 	onChange,
+	dirty = false,
+	onSave,
+	onReset,
+	standalone = false,
 }: {
-	embedded?: boolean;
-	value?: SettingsNotifications;
-	onChange?: (v: SettingsNotifications) => void;
+	value: SettingsNotifications;
+	onChange: (v: SettingsNotifications) => void;
+	dirty?: boolean;
+	onSave?: () => void;
+	onReset?: () => void;
+	standalone?: boolean;
 }) {
-	const [dLocal, setDLocal] = useState<SettingsNotifications>(
-		settingsNotifications,
-	);
-	const d = valueProp ?? dLocal;
-	const setD = (v: SettingsNotifications) => {
-		setDLocal(v);
-		onChange?.(v);
-	};
-	const dirty = JSON.stringify(d) !== JSON.stringify(settingsNotifications);
-
 	const inner = (
 		<div>
 			<FormGrid>
@@ -506,17 +495,17 @@ export function NotificationsSection({
 						<Toggle
 							label="Email (SMTP)"
 							checked={d.email}
-							onChange={(v) => setD({ ...d, email: v })}
+							onChange={(v) => onChange({ ...d, email: v })}
 						/>
 						<Toggle
 							label="Webhook"
 							checked={d.webhook}
-							onChange={(v) => setD({ ...d, webhook: v })}
+							onChange={(v) => onChange({ ...d, webhook: v })}
 						/>
 						<Toggle
 							label="ntfy.sh"
 							checked={d.ntfy}
-							onChange={(v) => setD({ ...d, ntfy: v })}
+							onChange={(v) => onChange({ ...d, ntfy: v })}
 						/>
 					</div>
 				</div>
@@ -528,7 +517,7 @@ export function NotificationsSection({
 								className={inputCls}
 								autoComplete="username"
 								value={d.smtpUser}
-								onChange={(e) => setD({ ...d, smtpUser: e.target.value })}
+								onChange={(e) => onChange({ ...d, smtpUser: e.target.value })}
 							/>
 						</Field>
 						<Field label="SMTP password">
@@ -537,7 +526,7 @@ export function NotificationsSection({
 								type="password"
 								autoComplete="current-password"
 								value={d.smtpPass}
-								onChange={(e) => setD({ ...d, smtpPass: e.target.value })}
+								onChange={(e) => onChange({ ...d, smtpPass: e.target.value })}
 							/>
 						</Field>
 						<Field label="SMTP host">
@@ -545,7 +534,7 @@ export function NotificationsSection({
 								className={inputCls}
 								value={d.smtpHost}
 								placeholder="smtp.example.com"
-								onChange={(e) => setD({ ...d, smtpHost: e.target.value })}
+								onChange={(e) => onChange({ ...d, smtpHost: e.target.value })}
 							/>
 						</Field>
 						<Field label="SMTP port">
@@ -553,7 +542,7 @@ export function NotificationsSection({
 								className={inputCls}
 								value={d.smtpPort}
 								style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}
-								onChange={(e) => setD({ ...d, smtpPort: e.target.value })}
+								onChange={(e) => onChange({ ...d, smtpPort: e.target.value })}
 							/>
 						</Field>
 						<Field label="From address" full>
@@ -561,7 +550,7 @@ export function NotificationsSection({
 								className={inputCls}
 								value={d.smtpFrom}
 								placeholder="euroflow@example.com"
-								onChange={(e) => setD({ ...d, smtpFrom: e.target.value })}
+								onChange={(e) => onChange({ ...d, smtpFrom: e.target.value })}
 							/>
 						</Field>
 					</>
@@ -578,7 +567,7 @@ export function NotificationsSection({
 							value={d.webhookUrl}
 							placeholder="https://hooks.example.com/euroflow"
 							style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}
-							onChange={(e) => setD({ ...d, webhookUrl: e.target.value })}
+							onChange={(e) => onChange({ ...d, webhookUrl: e.target.value })}
 						/>
 					</Field>
 				)}
@@ -594,7 +583,7 @@ export function NotificationsSection({
 							value={d.ntfyUrl}
 							placeholder="https://ntfy.sh/my-topic"
 							style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}
-							onChange={(e) => setD({ ...d, ntfyUrl: e.target.value })}
+							onChange={(e) => onChange({ ...d, ntfyUrl: e.target.value })}
 						/>
 					</Field>
 				)}
@@ -610,32 +599,32 @@ export function NotificationsSection({
 						<CheckRow
 							label="Sync fails (any account)"
 							checked={d.onFailure}
-							onChange={(v) => setD({ ...d, onFailure: v })}
+							onChange={(v) => onChange({ ...d, onFailure: v })}
 						/>
 						<CheckRow
 							label="Authentication is about to expire (≤ 7 days)"
 							checked={d.onExpiring}
-							onChange={(v) => setD({ ...d, onExpiring: v })}
+							onChange={(v) => onChange({ ...d, onExpiring: v })}
 						/>
 						<CheckRow
 							label="Authentication has expired"
 							checked={d.onExpired}
-							onChange={(v) => setD({ ...d, onExpired: v })}
+							onChange={(v) => onChange({ ...d, onExpired: v })}
 						/>
 						<CheckRow
 							label="Daily summary (09:00 local)"
 							checked={d.dailySummary}
-							onChange={(v) => setD({ ...d, dailySummary: v })}
+							onChange={(v) => onChange({ ...d, dailySummary: v })}
 						/>
 					</div>
 				</div>
 			</FormGrid>
 
-			{!embedded && (
+			{standalone && (
 				<SectionActions
 					dirty={dirty}
-					onReset={() => setD(settingsNotifications)}
-					onSave={() => {}}
+					onReset={onReset ?? (() => {})}
+					onSave={onSave ?? (() => {})}
 					extra={
 						<button
 							type="button"
@@ -651,7 +640,7 @@ export function NotificationsSection({
 		</div>
 	);
 
-	if (embedded) return inner;
+	if (!standalone) return inner;
 	return (
 		<SectionCard
 			title="Notifications"
@@ -663,22 +652,20 @@ export function NotificationsSection({
 }
 
 export function ScheduleSection({
-	embedded,
-	value: valueProp,
+	value: d,
 	onChange,
+	dirty = false,
+	onSave,
+	onReset,
+	standalone = false,
 }: {
-	embedded?: boolean;
-	value?: SettingsSchedule;
-	onChange?: (v: SettingsSchedule) => void;
+	value: SettingsSchedule;
+	onChange: (v: SettingsSchedule) => void;
+	dirty?: boolean;
+	onSave?: () => void;
+	onReset?: () => void;
+	standalone?: boolean;
 }) {
-	const [dLocal, setDLocal] = useState<SettingsSchedule>(settingsSchedule);
-	const d = valueProp ?? dLocal;
-	const setD = (v: SettingsSchedule) => {
-		setDLocal(v);
-		onChange?.(v);
-	};
-	const dirty = JSON.stringify(d) !== JSON.stringify(settingsSchedule);
-
 	const [h, m] = d.anchorTime.split(":").map(Number);
 	const cronExpr =
 		d.frequency === "custom"
@@ -755,7 +742,7 @@ export function ScheduleSection({
 								key={value}
 								type="button"
 								onClick={() =>
-									setD({
+									onChange({
 										...d,
 										frequency: value,
 										...(value === "custom" && d.frequency !== "custom"
@@ -785,7 +772,7 @@ export function ScheduleSection({
 							type="time"
 							value={d.anchorTime}
 							style={{ fontFamily: "var(--font-mono)" }}
-							onChange={(e) => setD({ ...d, anchorTime: e.target.value })}
+							onChange={(e) => onChange({ ...d, anchorTime: e.target.value })}
 						/>
 					</Field>
 				)}
@@ -793,7 +780,7 @@ export function ScheduleSection({
 					<select
 						className={selectCls}
 						value={d.timezone}
-						onChange={(e) => setD({ ...d, timezone: e.target.value })}
+						onChange={(e) => onChange({ ...d, timezone: e.target.value })}
 					>
 						{timezones.map((z) => (
 							<option key={z.value} value={z.value}>
@@ -811,7 +798,7 @@ export function ScheduleSection({
 							rows={1}
 							spellCheck={false}
 							value={d.customCron}
-							onChange={(e) => setD({ ...d, customCron: e.target.value })}
+							onChange={(e) => onChange({ ...d, customCron: e.target.value })}
 						/>
 					) : (
 						<pre
@@ -839,37 +826,28 @@ export function ScheduleSection({
 						<CheckRow
 							label="Catch up missed runs after restart"
 							checked={d.catchUp}
-							onChange={(v) => setD({ ...d, catchUp: v })}
+							onChange={(v) => onChange({ ...d, catchUp: v })}
 						/>
 						<CheckRow
 							label="Skip during weekends"
 							checked={d.skipWeekends}
-							onChange={(v) => setD({ ...d, skipWeekends: v })}
+							onChange={(v) => onChange({ ...d, skipWeekends: v })}
 						/>
 					</div>
-					{!embedded && dirty && (
-						<div className="flex gap-2 self-end">
-							<button
-								type="button"
-								onClick={() => setD(settingsSchedule)}
-								className="inline-flex items-center px-3 py-1.5 rounded-[3px] text-small bg-transparent border border-transparent text-btn-bare-text hover:bg-btn-bare-bg-hover hover:text-btn-bare-text-hover"
-							>
-								Reset
-							</button>
-							<button
-								type="button"
-								className="inline-flex items-center px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
-							>
-								Save
-							</button>
-						</div>
-					)}
 				</div>
 			</FormGrid>
+
+			{standalone && (
+				<SectionActions
+					dirty={dirty}
+					onReset={onReset ?? (() => {})}
+					onSave={onSave ?? (() => {})}
+				/>
+			)}
 		</div>
 	);
 
-	if (embedded) return inner;
+	if (!standalone) return inner;
 	return (
 		<SectionCard
 			title="Sync schedule"
@@ -1056,8 +1034,21 @@ function AdvancedSection() {
 
 function SettingsPage() {
 	const { dismissed, dismiss } = useBanners();
+
 	const [hp, setHp] = useState(hasPassword);
 	const [certInfo, setCertInfo] = useState<CertInfo | null>(seedCert);
+
+	const [actual, setActual] = useState<SettingsActual>(settingsActual);
+	const [notifications, setNotifications] = useState<SettingsNotifications>(
+		settingsNotifications,
+	);
+	const [schedule, setSchedule] = useState<SettingsSchedule>(settingsSchedule);
+
+	const actualDirty = JSON.stringify(actual) !== JSON.stringify(settingsActual);
+	const notificationsDirty =
+		JSON.stringify(notifications) !== JSON.stringify(settingsNotifications);
+	const scheduleDirty =
+		JSON.stringify(schedule) !== JSON.stringify(settingsSchedule);
 
 	const bannerStatus = !certInfo ? "err" : !hp ? "warn" : "ok";
 	const bannerMsg =
@@ -1106,10 +1097,32 @@ function SettingsPage() {
 				setHp={setHp}
 				certInfo={certInfo}
 				setCertInfo={setCertInfo}
+				standalone
 			/>
-			<ScheduleSection />
-			<NotificationsSection />
-			<ActualSection />
+			<ScheduleSection
+				value={schedule}
+				onChange={setSchedule}
+				dirty={scheduleDirty}
+				onSave={() => {}}
+				onReset={() => setSchedule(settingsSchedule)}
+				standalone
+			/>
+			<NotificationsSection
+				value={notifications}
+				onChange={setNotifications}
+				dirty={notificationsDirty}
+				onSave={() => {}}
+				onReset={() => setNotifications(settingsNotifications)}
+				standalone
+			/>
+			<ActualSection
+				value={actual}
+				onChange={setActual}
+				dirty={actualDirty}
+				onSave={() => {}}
+				onReset={() => setActual(settingsActual)}
+				standalone
+			/>
 			<AdvancedSection />
 		</div>
 	);

@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Icons } from "../components/Icon";
+import type { CertInfo } from "../seed/banks";
 import {
 	type SettingsActual,
 	type SettingsNotifications,
@@ -194,21 +195,16 @@ function SetupWizard() {
 					<div className="p-7">
 						{step === 1 && <SecurityStep hp={hp} setHp={setHp} />}
 						{step === 2 && (
-							<ScheduleSection
-								embedded
-								value={schedule}
-								onChange={setSchedule}
-							/>
+							<ScheduleSection value={schedule} onChange={setSchedule} />
 						)}
 						{step === 3 && (
 							<NotificationsSection
-								embedded
 								value={notifications}
 								onChange={setNotifications}
 							/>
 						)}
 						{step === 4 && (
-							<ActualSection embedded value={actual} onChange={setActual} />
+							<ActualSection value={actual} onChange={setActual} />
 						)}
 						{step === 5 && (
 							<ConfirmStep
@@ -248,7 +244,15 @@ function SecurityStep({
 	hp: boolean;
 	setHp: (v: boolean) => void;
 }) {
-	return <SecuritySection embedded hp={hp} setHp={setHp} certInfo={null} />;
+	const [certInfo, setCertInfo] = useState<CertInfo | null>(null);
+	return (
+		<SecuritySection
+			hp={hp}
+			setHp={setHp}
+			certInfo={certInfo}
+			setCertInfo={setCertInfo}
+		/>
+	);
 }
 
 function ConfirmStep({
