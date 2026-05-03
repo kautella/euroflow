@@ -3,14 +3,14 @@ import type { Db } from "../db/client";
 import { bankAccounts } from "../db/schema";
 import type { EnableBankingClient } from "../lib/enable-banking";
 
-type BanksRouterDeps = { db: Db; eb: EnableBankingClient };
+type BanksRouterDeps = { db: Db; getEb: () => EnableBankingClient };
 
-export function banksRouter({ db, eb }: BanksRouterDeps) {
+export function banksRouter({ db, getEb }: BanksRouterDeps) {
 	const router = Router();
 
 	router.get("/", async (req, res) => {
 		const country = req.query.country as string | undefined;
-		const banks = await eb.getBanks(country);
+		const banks = await getEb().getBanks(country);
 		res.json({ banks });
 	});
 

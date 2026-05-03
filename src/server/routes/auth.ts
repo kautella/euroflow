@@ -16,11 +16,11 @@ declare module "express-session" {
 
 type AuthRouterDeps = {
 	db: Db;
-	eb: EnableBankingClient;
+	getEb: () => EnableBankingClient;
 	redirectUri: string;
 };
 
-export function authRouter({ db, eb, redirectUri }: AuthRouterDeps) {
+export function authRouter({ db, getEb, redirectUri }: AuthRouterDeps) {
 	const router = Router();
 
 	router.post("/start", async (req, res) => {
@@ -40,7 +40,11 @@ export function authRouter({ db, eb, redirectUri }: AuthRouterDeps) {
 		(req as unknown as { session: Record<string, string> }).session.country =
 			country;
 
-		const authUrl = await eb.startAuth({ aspspId, redirectUri, state: nonce });
+		const authUrl = await getEb().startAuth({
+			aspspId,
+			redirectUri,
+			state: nonce,
+		});
 		res.json({ authUrl });
 	});
 
@@ -54,7 +58,10 @@ export function authRouter({ db, eb, redirectUri }: AuthRouterDeps) {
 			return;
 		}
 
-		const result = await eb.completeAuth({ code, aspspId: session.aspspId });
+		const result = await getEb().completeAuth({
+			code,
+			aspspId: session.aspspId,
+		});
 
 		if (result.accounts.length === 1) {
 			const acct = result.accounts[0];

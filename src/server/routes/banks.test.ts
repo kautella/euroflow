@@ -21,7 +21,10 @@ function makeApp(eb: Partial<EnableBankingClient>) {
 	const db = makeDb();
 	const app = express();
 	app.use(express.json());
-	app.use("/api/banks", banksRouter({ db, eb: eb as EnableBankingClient }));
+	app.use(
+		"/api/banks",
+		banksRouter({ db, getEb: () => eb as EnableBankingClient }),
+	);
 	return { app, db };
 }
 

@@ -28,7 +28,7 @@ function makeApp(eb: Partial<EnableBankingClient>, db = makeDb()) {
 		"/api/auth",
 		authRouter({
 			db,
-			eb: eb as EnableBankingClient,
+			getEb: () => eb as EnableBankingClient,
 			redirectUri: "http://localhost/api/auth/callback",
 		}),
 	);

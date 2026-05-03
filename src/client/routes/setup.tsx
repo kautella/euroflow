@@ -4,10 +4,11 @@ import { Icons } from "../components/Icon";
 import { useSettingsMutation } from "../hooks/useSettings";
 import {
 	encodeActual,
+	encodeEb,
 	encodeNotifications,
 	encodeSchedule,
+	type SettingsEb,
 } from "../lib/settings-codec";
-import type { CertInfo } from "../seed/banks";
 import {
 	type SettingsActual,
 	type SettingsNotifications,
@@ -40,6 +41,7 @@ function SetupWizard() {
 	const [step, setStep] = useState(1);
 
 	const [hp, setHp] = useState(false);
+	const [eb, setEb] = useState<SettingsEb>({ appId: "", privateKey: "" });
 	const [actual, setActual] = useState<SettingsActual>(settingsActual);
 	const [notifications, setNotifications] = useState<SettingsNotifications>(
 		settingsNotifications,
@@ -51,6 +53,7 @@ function SetupWizard() {
 	const finish = () => {
 		mutation.mutate(
 			{
+				...encodeEb(eb),
 				...encodeSchedule(schedule),
 				...encodeNotifications(notifications),
 				...encodeActual(actual),
@@ -211,7 +214,9 @@ function SetupWizard() {
 						)}
 					</div>
 					<div className="p-7">
-						{step === 1 && <SecurityStep hp={hp} setHp={setHp} />}
+						{step === 1 && (
+							<SecurityStep hp={hp} setHp={setHp} eb={eb} setEb={setEb} />
+						)}
 						{step === 2 && (
 							<ScheduleSection value={schedule} onChange={setSchedule} />
 						)}
@@ -227,6 +232,7 @@ function SetupWizard() {
 						{step === 5 && (
 							<ConfirmStep
 								hp={hp}
+								eb={eb}
 								actual={actual}
 								notifications={notifications}
 								schedule={schedule}
@@ -258,28 +264,35 @@ function SetupWizard() {
 function SecurityStep({
 	hp,
 	setHp,
+	eb,
+	setEb,
 }: {
 	hp: boolean;
 	setHp: (v: boolean) => void;
+	eb: SettingsEb;
+	setEb: (v: SettingsEb) => void;
 }) {
-	const [certInfo, setCertInfo] = useState<CertInfo | null>(null);
 	return (
 		<SecuritySection
 			hp={hp}
 			setHp={setHp}
-			certInfo={certInfo}
-			setCertInfo={setCertInfo}
+			ebAppId={eb.appId}
+			onEbAppIdChange={(v) => setEb({ ...eb, appId: v })}
+			ebKeyLoaded={!!eb.privateKey}
+			onEbKeyUpload={(pem) => setEb({ ...eb, privateKey: pem })}
 		/>
 	);
 }
 
 function ConfirmStep({
 	hp,
+	eb,
 	actual,
 	notifications,
 	schedule,
 }: {
 	hp: boolean;
+	eb: SettingsEb;
 	actual: SettingsActual;
 	notifications: SettingsNotifications;
 	schedule: SettingsSchedule;
@@ -295,7 +308,10 @@ function ConfirmStep({
 
 	const yaml = `# /var/lib/euroflow/config.yml
 security:
-  password: ${hp ? "********" : "(not set — open access)"}
+  password:       ${hp ? "********" : "(not set — open access)"}
+enable_banking:
+  app_id:         ${eb.appId || "(not set)"}
+  private_key:    ${eb.privateKey ? "*** loaded ***" : "(not set)"}
 schedule:
   frequency: ${schedule.frequency}
   anchor:    ${schedule.anchorTime}
