@@ -1,26 +1,42 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { useState } from "react";
+import type { AspspInfo } from "../../server/lib/enable-banking";
 import { Icons } from "../components/Icon";
 import { ConfirmModal, ModalShell } from "../components/Modal";
 import { StatusPill } from "../components/StatusPill";
 import { useBanners } from "../contexts/BannerContext";
 import {
-	OAUTH_REDIRECT_DELAY_MS,
-	type OAuthState,
-	oauthAdvance,
-} from "../lib/oauth";
-import {
-	banksCatalog,
-	type ConnectedAccount,
-	cert,
-	connectedBankGroups,
-	countries,
-} from "../seed/banks";
+	type ConnectedBankGroup,
+	useBankSearchQuery,
+	useConnectedBanksQuery,
+	usePendingAccountsQuery,
+	useSelectAccountMutation,
+} from "../hooks/useBanks";
+import { cert, countries } from "../seed/banks";
 
 export const Route = createFileRoute("/banks")({
 	component: BanksPage,
+	validateSearch: (s: Record<string, unknown>) => ({
+		step: (s.step as "done" | "pick" | undefined) ?? undefined,
+	}),
 });
+
+function initials(name: string): string {
+	return name
+		.split(/\s+/)
+		.map((w) => w[0])
+		.join("")
+		.toUpperCase()
+		.slice(0, 3);
+}
+
+function brandColor(name: string): string {
+	let h = 0;
+	for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+	const hue = h % 360;
+	return `hsl(${hue}, 45%, 35%)`;
+}
 
 function ExpiryPill({ days }: { days: number }) {
 	const status = days < 0 ? "err" : days < 21 ? "warn" : "ok";
@@ -28,28 +44,143 @@ function ExpiryPill({ days }: { days: number }) {
 	return <StatusPill status={status} label={label} />;
 }
 
-function OAuthModal({
-	oauth,
-	onNext,
+function AccountPickerModal({
+	open,
 	onClose,
 }: {
-	oauth: OAuthState | null;
-	onNext: () => void;
+	open: boolean;
 	onClose: () => void;
 }) {
-	useEffect(() => {
-		if (oauth?.step === 2) {
-			const t = setTimeout(onNext, OAUTH_REDIRECT_DELAY_MS);
-			return () => clearTimeout(t);
-		}
-	}, [oauth?.step, onNext]);
+	const { data: pending } = usePendingAccountsQuery(open);
+	const selectMutation = useSelectAccountMutation();
+	const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
-	if (!oauth) return null;
-	const { bank, step, reauth } = oauth;
-	const steps = ["Consent", "Authorise at bank", "Map accounts"];
+	if (!open || !pending) return null;
+
+	async function handleConfirm() {
+		if (selectedIdx === null || !pending) return;
+		const acct = pending.accounts[selectedIdx];
+		await selectMutation.mutateAsync({
+			sessionId: pending.sessionId,
+			aspspId: pending.aspspId,
+			aspspName: pending.aspspName,
+			country: pending.country,
+			iban: acct.iban,
+			accountName: acct.name,
+			accountType: acct.type,
+			consentExpires: pending.consentExpires,
+		});
+		onClose();
+	}
 
 	return (
-		<ModalShell open={!!oauth} onClose={onClose} width={520}>
+		<ModalShell open={open} onClose={onClose} width={480}>
+			<Dialog.Title className="sr-only">Select account</Dialog.Title>
+			<div className="p-5 border-b border-table-border">
+				<div className="text-page-text-dark font-semibold text-small mb-1">
+					Select account to connect
+				</div>
+				<div
+					className="font-mono text-page-text-subdued uppercase"
+					style={{ fontSize: 11, letterSpacing: "0.06em" }}
+				>
+					{pending.aspspName} · {pending.accounts.length} accounts found
+				</div>
+			</div>
+			<div className="p-5">
+				{pending.accounts.map((acct, i) => (
+					<button
+						key={acct.iban ?? acct.name}
+						type="button"
+						onClick={() => setSelectedIdx(i)}
+						className={`w-full flex items-center gap-3 px-3.5 py-2.5 mb-2 rounded-[3px] border text-left ${
+							selectedIdx === i
+								? "border-btn-primary-bg bg-[rgba(148,70,237,0.08)]"
+								: "border-table-border bg-table-bg hover:bg-table-row-hover"
+						}`}
+					>
+						<div className="flex-1">
+							<div
+								className="text-page-text font-medium"
+								style={{ fontSize: 13 }}
+							>
+								{acct.name}
+							</div>
+							{acct.iban && (
+								<div
+									className="font-mono text-page-text-subdued"
+									style={{ fontSize: 11 }}
+								>
+									{acct.iban}
+								</div>
+							)}
+						</div>
+						<span
+							className="font-mono text-page-text-subdued uppercase"
+							style={{ fontSize: 10 }}
+						>
+							{acct.type}
+						</span>
+					</button>
+				))}
+			</div>
+			<div className="flex justify-end gap-2 px-5 py-3.5 border-t border-table-border bg-table-bg">
+				<button
+					type="button"
+					onClick={onClose}
+					className="px-3 py-1.5 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
+				>
+					Cancel
+				</button>
+				<button
+					type="button"
+					disabled={selectedIdx === null || selectMutation.isPending}
+					onClick={handleConfirm}
+					className="px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover disabled:opacity-50"
+				>
+					Connect →
+				</button>
+			</div>
+		</ModalShell>
+	);
+}
+
+function OAuthConsentModal({
+	bank,
+	reauth,
+	onClose,
+}: {
+	bank: AspspInfo;
+	reauth?: boolean;
+	onClose: () => void;
+}) {
+	const [starting, setStarting] = useState(false);
+
+	async function handleContinue() {
+		setStarting(true);
+		try {
+			const res = await fetch("/api/auth/start", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					aspspId: bank.id,
+					aspspName: bank.name,
+					country: bank.country,
+				}),
+			});
+			if (!res.ok) throw new Error(`POST /api/auth/start ${res.status}`);
+			const { authUrl } = (await res.json()) as { authUrl: string };
+			window.location.href = authUrl;
+		} catch {
+			setStarting(false);
+		}
+	}
+
+	const bInitials = initials(bank.name);
+	const bColor = brandColor(bank.name);
+
+	return (
+		<ModalShell open onClose={onClose} width={520}>
 			<Dialog.Title className="sr-only">
 				{reauth ? "Re-authorise" : "Connect"} {bank.name}
 			</Dialog.Title>
@@ -62,11 +193,11 @@ function OAuthModal({
 						width: 32,
 						height: 32,
 						borderRadius: 4,
-						background: bank.brand,
+						background: bColor,
 						fontSize: 11,
 					}}
 				>
-					{bank.initials}
+					{bInitials}
 				</div>
 				<div>
 					<div className="text-page-text-dark font-semibold text-small">
@@ -76,193 +207,51 @@ function OAuthModal({
 						className="font-mono text-page-text-subdued uppercase"
 						style={{ fontSize: 11, letterSpacing: "0.06em" }}
 					>
-						STEP {step} OF 3 · PSD2 SCA FLOW
+						PSD2 SCA FLOW
 					</div>
 				</div>
 			</div>
 
-			{/* Stepper */}
-			<div className="flex px-5 pt-4">
-				{steps.map((lbl, i) => {
-					const n = (i + 1) as 1 | 2 | 3;
-					const done = step > n;
-					const active = step === n;
-					return (
-						<div key={lbl} className="flex items-center gap-2 flex-1">
-							<div
-								className="flex-shrink-0 flex items-center justify-center font-mono font-bold rounded"
-								style={{
-									width: 22,
-									height: 22,
-									borderRadius: 4,
-									fontSize: 11,
-									border: `1px solid ${active || done ? "var(--color-btn-primary-bg)" : "var(--color-table-border)"}`,
-									background: done
-										? "var(--color-btn-primary-bg)"
-										: active
-											? "rgba(148,70,237,0.15)"
-											: "transparent",
-									color: done
-										? "white"
-										: active
-											? "var(--color-sidebar-text-selected)"
-											: "var(--color-page-text-subdued)",
-								}}
-							>
-								{done ? <Icons.Check size={12} /> : n}
-							</div>
-							<span
-								className={
-									active ? "text-page-text-dark" : "text-page-text-light"
-								}
-								style={{ fontSize: 12 }}
-							>
-								{lbl}
-							</span>
-							{i < 2 && <div className="flex-1 h-px bg-table-border mr-1" />}
-						</div>
-					);
-				})}
-			</div>
-
-			{/* Step content */}
+			{/* Permissions */}
 			<div className="p-5">
-				{step === 1 && (
-					<div>
-						<div
-							className="font-mono text-page-text-subdued uppercase mb-2.5"
-							style={{ fontSize: 11, letterSpacing: "0.06em" }}
+				<div
+					className="font-mono text-page-text-subdued uppercase mb-2.5"
+					style={{ fontSize: 11, letterSpacing: "0.06em" }}
+				>
+					› Requested permissions
+				</div>
+				<ul className="border-t border-table-border list-none p-0 m-0">
+					{[
+						["Account details", "IBAN, holder name, currency"],
+						["Balances", "current and available"],
+						["Transactions", `up to ${bank.maxDays} days history`],
+					].map(([title, desc]) => (
+						<li
+							key={title}
+							className="flex items-center gap-3 py-2.5 border-b border-table-border"
 						>
-							› Requested permissions
-						</div>
-						<ul className="border-t border-table-border list-none p-0 m-0">
-							{[
-								["Account details", "IBAN, holder name, currency"],
-								["Balances", "current and available"],
-								["Transactions", "up to 90 days history"],
-							].map(([title, desc]) => (
-								<li
-									key={title}
-									className="flex items-center gap-3 py-2.5 border-b border-table-border"
-								>
-									<Icons.Check size={14} />
-									<div className="flex-1">
-										<div
-											className="text-page-text font-medium"
-											style={{ fontSize: 13 }}
-										>
-											{title}
-										</div>
-										<div
-											className="text-page-text-light"
-											style={{ fontSize: 12 }}
-										>
-											{desc}
-										</div>
-									</div>
-								</li>
-							))}
-						</ul>
-						<div
-							className="font-mono text-page-text-subdued mt-3.5"
-							style={{ fontSize: 11, letterSpacing: "0.04em" }}
-						>
-							CONSENT VALIDITY: 180 DAYS · YOU WILL BE ASKED TO RE-AUTHORISE
-							BEFORE EXPIRY
-						</div>
-					</div>
-				)}
-
-				{step === 2 && (
-					<div className="text-center py-8">
-						<div
-							className="inline-block w-7 h-7 rounded-full border-2 border-t-transparent animate-spin mb-4"
-							style={{
-								borderColor: "var(--color-btn-primary-bg)",
-								borderTopColor: "transparent",
-							}}
-						/>
-						<div
-							className="text-page-text font-medium mb-1.5"
-							style={{ fontSize: 14 }}
-						>
-							Redirecting to {bank.name}…
-						</div>
-						<div
-							className="font-mono text-page-text-subdued uppercase"
-							style={{ fontSize: 11, letterSpacing: "0.06em" }}
-						>
-							Complete SCA in your bank's app, then return here
-						</div>
-						<pre
-							className="font-mono text-page-text-light bg-table-bg border border-table-border rounded mt-4 p-3 text-left overflow-auto"
-							style={{ fontSize: 11 }}
-						>{`[14:32:01] POST /v2/agreements ... 201 Created
-[14:32:02] GET  /v2/requisitions/sess_b8a4...3f1e
-[14:32:02] redirect → ${bank.name.toLowerCase().replace(/\s+/g, "")}.bank/auth?consent=...
-[14:32:03] awaiting user SCA…`}</pre>
-					</div>
-				)}
-
-				{step === 3 && (
-					<div>
-						<div className="flex items-center gap-2 px-3 py-2.5 mb-3.5 rounded bg-notice-bg text-notice-text border border-notice-border">
 							<Icons.Check size={14} />
-							<span
-								className="font-mono"
-								style={{ fontSize: 12, letterSpacing: "0.04em" }}
-							>
-								AUTHORISED · 2 ACCOUNTS DISCOVERED
-							</span>
-						</div>
-						<div
-							className="font-mono text-page-text-subdued uppercase mb-2"
-							style={{ fontSize: 11, letterSpacing: "0.06em" }}
-						>
-							› Map to Actual Budget accounts
-						</div>
-						{[
-							{
-								name: "Main checking",
-								iban: "DE89 3704 0044 0532 0130 00",
-								mapping: "Main checking",
-							},
-							{
-								name: "Savings",
-								iban: "DE89 3704 0044 0532 0130 01",
-								mapping: "— create new —",
-							},
-						].map((a) => (
-							<div
-								key={a.iban}
-								className="py-2.5 border-b border-table-border grid items-center gap-2.5"
-								style={{ gridTemplateColumns: "1fr auto 1fr" }}
-							>
-								<div>
-									<div
-										className="text-page-text font-medium"
-										style={{ fontSize: 13 }}
-									>
-										{a.name}
-									</div>
-									<div
-										className="font-mono text-page-text-subdued"
-										style={{ fontSize: 11 }}
-									>
-										{a.iban}
-									</div>
+							<div className="flex-1">
+								<div
+									className="text-page-text font-medium"
+									style={{ fontSize: 13 }}
+								>
+									{title}
 								</div>
-								<Icons.Arrow size={14} />
-								<select className="w-full px-2 py-1.5 rounded-[3px] text-small bg-form-input-bg text-form-input-text border border-form-input-border focus:outline-none focus:border-form-input-border-selected">
-									<option>{a.mapping}</option>
-									<option>Main checking</option>
-									<option>Savings</option>
-									<option>— create new —</option>
-								</select>
+								<div className="text-page-text-light" style={{ fontSize: 12 }}>
+									{desc}
+								</div>
 							</div>
-						))}
-					</div>
-				)}
+						</li>
+					))}
+				</ul>
+				<div
+					className="font-mono text-page-text-subdued mt-3.5"
+					style={{ fontSize: 11, letterSpacing: "0.04em" }}
+				>
+					CONSENT VALIDITY: 180 DAYS · YOU WILL BE ASKED TO RE-AUTHORISE BEFORE
+					EXPIRY
+				</div>
 			</div>
 
 			{/* Footer */}
@@ -271,9 +260,7 @@ function OAuthModal({
 					className="font-mono text-page-text-subdued uppercase"
 					style={{ fontSize: 11, letterSpacing: "0.06em" }}
 				>
-					{step === 1 && "Click continue to redirect"}
-					{step === 2 && "Waiting for callback…"}
-					{step === 3 && "Mapping is editable later"}
+					Click continue to redirect
 				</span>
 				<div className="flex gap-2">
 					<button
@@ -283,95 +270,176 @@ function OAuthModal({
 					>
 						Cancel
 					</button>
-					{step === 1 && (
-						<button
-							type="button"
-							onClick={onNext}
-							className="px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
-						>
-							Continue at bank →
-						</button>
-					)}
-					{step === 3 && (
-						<button
-							type="button"
-							onClick={onClose}
-							className="px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
-						>
-							Finish
-						</button>
-					)}
+					<button
+						type="button"
+						onClick={handleContinue}
+						disabled={starting}
+						className="px-3 py-1.5 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover disabled:opacity-50"
+					>
+						{starting ? "Redirecting…" : "Continue at bank →"}
+					</button>
 				</div>
 			</div>
 		</ModalShell>
 	);
 }
 
-function AccountRow({ account }: { account: ConnectedAccount }) {
+function ConnectedGroupCard({
+	group,
+	onDisconnect,
+	onReauth,
+}: {
+	group: ConnectedBankGroup;
+	onDisconnect: () => void;
+	onReauth: () => void;
+}) {
+	const minDays = Math.min(...group.accounts.map((a) => a.expiresInDays));
+	const bColor = brandColor(group.bank.name);
+	const bInitials = initials(group.bank.name);
+	const accentBorder =
+		minDays < 0
+			? "border-l-[4px] border-l-status-err"
+			: minDays < 21
+				? "border-l-[4px] border-l-status-warn"
+				: "";
+
 	return (
-		<tr className="border-b border-table-border last:border-0 hover:bg-table-row-hover">
-			<td
-				className="px-4 py-2 text-page-text font-medium"
-				style={{ fontSize: 13 }}
-			>
-				{account.name}
-			</td>
-			<td
-				className="font-mono text-page-text px-4 py-2"
-				style={{ fontSize: 12 }}
-			>
-				{account.iban}
-			</td>
-			<td
-				className="font-mono text-page-text-light px-4 py-2 uppercase"
-				style={{ fontSize: 11, letterSpacing: "0.06em" }}
-			>
-				{account.type}
-			</td>
-			<td
-				className="font-mono text-page-text-light px-4 py-2"
-				style={{ fontSize: 12 }}
-			>
-				→ {account.actualMapping}
-			</td>
-			<td className="px-4 py-2">
-				<ExpiryPill days={account.expiresInDays} />
-			</td>
-			<td className="px-4 py-2 text-right w-12">
+		<div
+			className={`bg-card-bg border border-table-border rounded-[3px] mb-3 overflow-hidden ${accentBorder}`}
+		>
+			<div className="flex items-center gap-3.5 px-4 py-3.5 border-b border-table-border bg-table-bg">
+				<div
+					className="flex-shrink-0 flex items-center justify-center font-mono font-bold text-white rounded"
+					style={{
+						width: 36,
+						height: 36,
+						borderRadius: 4,
+						background: bColor,
+						fontSize: 12,
+					}}
+				>
+					{bInitials}
+				</div>
+				<div className="flex-1">
+					<div
+						className={`font-semibold ${minDays < 0 ? "text-status-err" : minDays < 21 ? "text-status-warn" : "text-page-text-dark"}`}
+						style={{ fontSize: 14 }}
+					>
+						{group.bank.name}
+					</div>
+					<div
+						className="font-mono text-page-text-subdued"
+						style={{ fontSize: 11, letterSpacing: "0.04em" }}
+					>
+						{group.bank.country} · {group.accounts.length} account
+						{group.accounts.length === 1 ? "" : "s"} · consent{" "}
+						{group.consentId.slice(0, 12)}…
+					</div>
+				</div>
 				<button
 					type="button"
-					className="text-page-text-subdued hover:text-page-text"
-					title="More"
+					onClick={onDisconnect}
+					className="flex items-center gap-1 px-2.5 py-1 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
 				>
-					<Icons.Dots size={14} />
+					<Icons.X size={12} /> Disconnect
 				</button>
-			</td>
-		</tr>
+				<button
+					type="button"
+					onClick={onReauth}
+					className="flex items-center gap-1 px-2.5 py-1 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
+				>
+					<Icons.Refresh size={12} /> Re-authorise
+				</button>
+			</div>
+
+			<div className="overflow-auto">
+				<table className="w-full border-collapse bg-table-bg">
+					<thead>
+						<tr className="bg-table-header-bg">
+							{["Account name", "IBAN", "Type", "Consent", ""].map((h) => (
+								<th
+									key={h}
+									className="font-mono text-table-header-text text-left px-4 py-2 border-b border-table-border"
+									style={{ fontSize: 11, letterSpacing: "0.06em" }}
+								>
+									{h}
+								</th>
+							))}
+						</tr>
+					</thead>
+					<tbody>
+						{group.accounts.map((a) => (
+							<tr
+								key={a.id}
+								className="border-b border-table-border last:border-0 hover:bg-table-row-hover"
+							>
+								<td
+									className="px-4 py-2 text-page-text font-medium"
+									style={{ fontSize: 13 }}
+								>
+									{a.name}
+								</td>
+								<td
+									className="font-mono text-page-text px-4 py-2"
+									style={{ fontSize: 12 }}
+								>
+									{a.iban ?? "—"}
+								</td>
+								<td
+									className="font-mono text-page-text-light px-4 py-2 uppercase"
+									style={{ fontSize: 11, letterSpacing: "0.06em" }}
+								>
+									{a.type}
+								</td>
+								<td className="px-4 py-2">
+									<ExpiryPill days={a.expiresInDays} />
+								</td>
+								<td className="px-4 py-2 text-right w-12">
+									<button
+										type="button"
+										className="text-page-text-subdued hover:text-page-text"
+										title="More"
+									>
+										<Icons.Dots size={14} />
+									</button>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		</div>
 	);
 }
 
 function BanksPage() {
+	const search = useSearch({ from: "/banks" });
+	const step = search.step;
+
 	const [searchQ, setSearchQ] = useState("");
 	const [country, setCountry] = useState<string>("DE");
-	const [oauth, setOauth] = useState<OAuthState>(null);
+	const [oauthBank, setOauthBank] = useState<AspspInfo | null>(null);
+	const [reauthBank, setReauthBank] = useState<AspspInfo | null>(null);
 	const [disconnectBank, setDisconnectBank] = useState<{
 		id: string;
 		name: string;
 	} | null>(null);
+	const [pickerOpen, setPickerOpen] = useState(step === "pick");
 	const { dismissed: dismissedBanners, dismiss: dismissBanner } = useBanners();
 
-	const matches = useMemo(() => {
-		if (!searchQ) return [];
-		return banksCatalog
-			.filter(
-				(b) =>
-					b.country === country &&
-					b.name.toLowerCase().includes(searchQ.toLowerCase()),
-			)
-			.slice(0, 6);
-	}, [searchQ, country]);
+	const searchEnabled = searchQ.length >= 2;
+	const { data: searchResults = [], isFetching: searchLoading } =
+		useBankSearchQuery(country, searchEnabled);
 
-	const totalNeedReauth = connectedBankGroups
+	const { data: connectedGroups = [] } = useConnectedBanksQuery();
+
+	const matches = searchEnabled
+		? searchResults.filter((b) =>
+				b.name.toLowerCase().includes(searchQ.toLowerCase()),
+			)
+		: [];
+
+	const totalNeedReauth = connectedGroups
 		.flatMap((g) => g.accounts)
 		.filter((a) => a.expiresInDays < 14).length;
 
@@ -391,6 +459,27 @@ function BanksPage() {
 					</h1>
 				</div>
 			</div>
+
+			{/* Post-OAuth success banner */}
+			{step === "done" && !dismissedBanners.has("oauth-done") && (
+				<div
+					className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] mb-5 bg-transparent text-notice-text border border-notice-border font-mono"
+					style={{ fontSize: 12, letterSpacing: "0.04em", minHeight: 44 }}
+				>
+					<Icons.Check size={14} className="flex-shrink-0" />
+					<span className="flex-1">
+						BANK CONNECTED SUCCESSFULLY — account added to sync list.
+					</span>
+					<button
+						type="button"
+						onClick={() => dismissBanner("oauth-done")}
+						className="flex-shrink-0 text-current opacity-50 hover:opacity-100"
+						aria-label="Dismiss"
+					>
+						<Icons.X size={14} />
+					</button>
+				</div>
+			)}
 
 			{/* Status banners */}
 			{(!dismissedBanners.has("cert") ||
@@ -430,8 +519,8 @@ function BanksPage() {
 								<Icons.Shield size={14} className="flex-shrink-0" />
 								<span className="flex-1">
 									PSD2 CERTIFICATE ACTIVE ·{" "}
-									{connectedBankGroups.flatMap((g) => g.accounts).length}{" "}
-									accounts connected · valid until {cert.expires}
+									{connectedGroups.flatMap((g) => g.accounts).length} accounts
+									connected · valid until {cert.expires}
 								</span>
 								<a
 									href="/settings"
@@ -479,8 +568,7 @@ function BanksPage() {
 					Connect a new bank
 				</h2>
 				<p className="text-page-text-light text-small mb-3.5">
-					Search by name across {banksCatalog.length} institutions in 31 EEA
-					countries (via GoCardless / Nordigen).
+					Search by name across EEA institutions via Enable Banking.
 				</p>
 				<div
 					className="grid gap-2"
@@ -512,20 +600,29 @@ function BanksPage() {
 					</div>
 				</div>
 
-				{matches.length > 0 && (
+				{searchLoading && searchEnabled && (
+					<div
+						className="mt-3 font-mono text-page-text-subdued uppercase"
+						style={{ fontSize: 11 }}
+					>
+						Searching…
+					</div>
+				)}
+
+				{!searchLoading && matches.length > 0 && (
 					<div className="mt-3 border border-table-border rounded overflow-hidden">
-						{matches.map((b, i) => (
+						{matches.slice(0, 6).map((b, i) => (
 							<button
 								key={b.id}
 								type="button"
 								className="w-full flex items-center gap-3 px-3.5 py-2.5 bg-table-bg hover:bg-table-row-hover cursor-pointer text-left"
 								style={{
 									borderBottom:
-										i < matches.length - 1
+										i < Math.min(matches.length, 6) - 1
 											? "1px solid var(--color-table-border)"
 											: undefined,
 								}}
-								onClick={() => setOauth({ bank: b, step: 1 })}
+								onClick={() => setOauthBank(b)}
 							>
 								<div
 									className="flex-shrink-0 flex items-center justify-center font-mono font-bold text-white rounded"
@@ -533,11 +630,11 @@ function BanksPage() {
 										width: 28,
 										height: 28,
 										borderRadius: 4,
-										background: b.brand,
+										background: brandColor(b.name),
 										fontSize: 11,
 									}}
 								>
-									{b.initials}
+									{initials(b.name)}
 								</div>
 								<div className="flex-1">
 									<div
@@ -569,122 +666,55 @@ function BanksPage() {
 			{/* Connected banks */}
 			<div className="flex items-baseline justify-between mb-2.5">
 				<h2 className="text-page-text-dark font-bold" style={{ fontSize: 14 }}>
-					Connected ({connectedBankGroups.length})
+					Connected ({connectedGroups.length})
 				</h2>
 				<span
 					className="font-mono text-page-text-subdued uppercase"
 					style={{ fontSize: 11, letterSpacing: "0.06em" }}
 				>
-					{connectedBankGroups.flatMap((g) => g.accounts).length} accounts
+					{connectedGroups.flatMap((g) => g.accounts).length} accounts
 					{totalNeedReauth > 0 && ` · ${totalNeedReauth} need re-auth soon`}
 				</span>
 			</div>
 
-			{connectedBankGroups.map((g) => {
-				const minDays = Math.min(...g.accounts.map((a) => a.expiresInDays));
-				const accentBorder =
-					minDays < 0
-						? "border-l-[4px] border-l-status-err"
-						: minDays < 21
-							? "border-l-[4px] border-l-status-warn"
-							: "";
-				return (
-					<div
-						key={g.bank.id}
-						className={`bg-card-bg border border-table-border rounded-[3px] mb-3 overflow-hidden ${accentBorder}`}
-					>
-						{/* Bank header row */}
-						<div className="flex items-center gap-3.5 px-4 py-3.5 border-b border-table-border bg-table-bg">
-							<div
-								className="flex-shrink-0 flex items-center justify-center font-mono font-bold text-white rounded"
-								style={{
-									width: 36,
-									height: 36,
-									borderRadius: 4,
-									background: g.bank.brand,
-									fontSize: 12,
-								}}
-							>
-								{g.bank.initials}
-							</div>
-							<div className="flex-1">
-								<div
-									className={`font-semibold ${minDays < 0 ? "text-status-err" : minDays < 21 ? "text-status-warn" : "text-page-text-dark"}`}
-									style={{ fontSize: 14 }}
-								>
-									{g.bank.name}
-								</div>
-								<div
-									className="font-mono text-page-text-subdued"
-									style={{ fontSize: 11, letterSpacing: "0.04em" }}
-								>
-									{g.bank.country} · {g.accounts.length} account
-									{g.accounts.length === 1 ? "" : "s"} · consent {g.consentId}
-								</div>
-							</div>
-							<button
-								type="button"
-								onClick={() =>
-									setDisconnectBank({ id: g.bank.id, name: g.bank.name })
-								}
-								className="flex items-center gap-1 px-2.5 py-1 rounded-[3px] text-small bg-btn-normal-bg text-btn-normal-text border border-btn-normal-border hover:bg-btn-normal-bg-hover"
-							>
-								<Icons.X size={12} /> Disconnect
-							</button>
-							<button
-								type="button"
-								onClick={() =>
-									setOauth({
-										bank: { ...g.bank, maxDays: 90, bic: "" },
-										step: 1,
-										reauth: true,
-									})
-								}
-								className="flex items-center gap-1 px-2.5 py-1 rounded-[3px] text-small bg-btn-primary-bg text-btn-primary-text hover:bg-btn-primary-bg-hover"
-							>
-								<Icons.Refresh size={12} /> Re-authorise
-							</button>
-						</div>
+			{connectedGroups.map((g) => (
+				<ConnectedGroupCard
+					key={`${g.bank.id}::${g.consentId}`}
+					group={g}
+					onDisconnect={() =>
+						setDisconnectBank({ id: g.bank.id, name: g.bank.name })
+					}
+					onReauth={() =>
+						setReauthBank({
+							id: g.bank.id,
+							name: g.bank.name,
+							country: g.bank.country,
+							bic: "",
+							maxDays: 90,
+						})
+					}
+				/>
+			))}
 
-						{/* Accounts table */}
-						<div className="overflow-auto">
-							<table className="w-full border-collapse bg-table-bg">
-								<thead>
-									<tr className="bg-table-header-bg">
-										{[
-											"Account name",
-											"IBAN",
-											"Type",
-											"Sync to",
-											"Consent",
-											"",
-										].map((h) => (
-											<th
-												key={h}
-												className="font-mono text-table-header-text text-left px-4 py-2 border-b border-table-border"
-												style={{ fontSize: 11, letterSpacing: "0.06em" }}
-											>
-												{h}
-											</th>
-										))}
-									</tr>
-								</thead>
-								<tbody>
-									{g.accounts.map((a) => (
-										<AccountRow key={a.id} account={a} />
-									))}
-								</tbody>
-							</table>
-						</div>
-					</div>
-				);
-			})}
+			{/* OAuth consent modal */}
+			{oauthBank && (
+				<OAuthConsentModal
+					bank={oauthBank}
+					onClose={() => setOauthBank(null)}
+				/>
+			)}
+			{reauthBank && (
+				<OAuthConsentModal
+					bank={reauthBank}
+					reauth
+					onClose={() => setReauthBank(null)}
+				/>
+			)}
 
-			{/* OAuth modal */}
-			<OAuthModal
-				oauth={oauth}
-				onNext={() => setOauth((s) => s && oauthAdvance(s))}
-				onClose={() => setOauth(null)}
+			{/* Account picker modal (post-callback, multiple accounts) */}
+			<AccountPickerModal
+				open={pickerOpen}
+				onClose={() => setPickerOpen(false)}
 			/>
 
 			{/* Disconnect confirm modal */}

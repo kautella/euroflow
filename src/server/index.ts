@@ -6,6 +6,7 @@ import { createDb } from "./db/client";
 import { EnableBankingClient } from "./lib/enable-banking";
 import { SettingsStore } from "./lib/settings-store";
 import { authRouter } from "./routes/auth";
+import { banksRouter } from "./routes/banks";
 import { settingsRouter } from "./routes/settings";
 
 const DATA_DIR = process.env.DATA_DIR ?? "./data";
@@ -22,10 +23,11 @@ log.info({ path: resolve(DATA_DIR, "euroflow.db") }, "database ready");
 export const store = new SettingsStore(db);
 store.bootstrap();
 
-const eb = new EnableBankingClient({
-	applicationId: store.get("eb_application_id") ?? "",
-	privateKeyPem: store.get("eb_private_key") ?? "",
-});
+const getEb = () =>
+	new EnableBankingClient({
+		applicationId: store.get("eb_application_id") ?? "",
+		privateKeyPem: store.get("eb_private_key") ?? "",
+	});
 
 const app = express();
 app.use(express.json());
@@ -43,7 +45,8 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/settings", settingsRouter(store));
-app.use("/api/auth", authRouter({ db, eb, redirectUri: REDIRECT_URI }));
+app.use("/api/auth", authRouter({ db, getEb, redirectUri: REDIRECT_URI }));
+app.use("/api/banks", banksRouter({ db, getEb }));
 
 const server = app.listen(PORT, () => {
 	log.info({ port: PORT }, "server listening");

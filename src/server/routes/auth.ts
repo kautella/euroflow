@@ -10,16 +10,17 @@ declare module "express-session" {
 		aspspId?: string;
 		aspspName?: string;
 		country?: string;
+		pendingAccounts?: string;
 	}
 }
 
 type AuthRouterDeps = {
 	db: Db;
-	eb: EnableBankingClient;
+	getEb: () => EnableBankingClient;
 	redirectUri: string;
 };
 
-export function authRouter({ db, eb, redirectUri }: AuthRouterDeps) {
+export function authRouter({ db, getEb, redirectUri }: AuthRouterDeps) {
 	const router = Router();
 
 	router.post("/start", async (req, res) => {
@@ -39,7 +40,11 @@ export function authRouter({ db, eb, redirectUri }: AuthRouterDeps) {
 		(req as unknown as { session: Record<string, string> }).session.country =
 			country;
 
-		const authUrl = await eb.startAuth({ aspspId, redirectUri, state: nonce });
+		const authUrl = await getEb().startAuth({
+			aspspId,
+			redirectUri,
+			state: nonce,
+		});
 		res.json({ authUrl });
 	});
 
@@ -53,7 +58,10 @@ export function authRouter({ db, eb, redirectUri }: AuthRouterDeps) {
 			return;
 		}
 
-		const result = await eb.completeAuth({ code, aspspId: session.aspspId });
+		const result = await getEb().completeAuth({
+			code,
+			aspspId: session.aspspId,
+		});
 
 		if (result.accounts.length === 1) {
 			const acct = result.accounts[0];
@@ -71,12 +79,30 @@ export function authRouter({ db, eb, redirectUri }: AuthRouterDeps) {
 				})
 				.run();
 			session.nonce = "";
-			res.redirect("/?step=done");
+			res.redirect("/banks?step=done");
 		} else {
 			session.sessionId = result.sessionId;
 			session.consentExpires = result.consentExpires;
-			res.redirect("/?step=pick");
+			session.pendingAccounts = JSON.stringify(result.accounts);
+			res.redirect("/banks?step=pick");
 		}
+	});
+
+	router.get("/pending-accounts", (req, res) => {
+		const session = (req as unknown as { session: Record<string, string> })
+			.session;
+		if (!session.pendingAccounts) {
+			res.status(404).json({ error: "no pending accounts" });
+			return;
+		}
+		res.json({
+			aspspId: session.aspspId,
+			aspspName: session.aspspName,
+			country: session.country,
+			sessionId: session.sessionId,
+			consentExpires: session.consentExpires,
+			accounts: JSON.parse(session.pendingAccounts),
+		});
 	});
 
 	router.post("/select-account", (req, res) => {

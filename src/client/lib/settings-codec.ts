@@ -126,6 +126,25 @@ export function encodeAdvanced(d: SettingsAdvanced): KV {
 	};
 }
 
+export type SettingsEb = {
+	appId: string;
+	privateKey: string;
+};
+
+export function decodeEb(kv: KV): SettingsEb {
+	return {
+		appId: kv.eb_application_id ?? "",
+		privateKey: kv.eb_private_key ?? "",
+	};
+}
+
+export function encodeEb(d: SettingsEb): KV {
+	return {
+		eb_application_id: d.appId,
+		eb_private_key: d.privateKey,
+	};
+}
+
 export function decodeIsConfigured(kv: KV): boolean {
 	return bool(kv.is_configured, false);
 }

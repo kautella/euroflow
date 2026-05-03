@@ -8,13 +8,15 @@ import { useSettingsMutation, useSettingsQuery } from "../hooks/useSettings";
 import { nextRunFormatted, scheduleToCron } from "../lib/schedule";
 import {
 	decodeActual,
+	decodeEb,
 	decodeNotifications,
 	decodeSchedule,
 	encodeActual,
+	encodeEb,
 	encodeNotifications,
 	encodeSchedule,
+	type SettingsEb,
 } from "../lib/settings-codec";
-import { type CertInfo, cert as seedCert } from "../seed/banks";
 import {
 	hasPassword,
 	type SettingsActual,
@@ -210,15 +212,25 @@ function SectionActions({
 export function SecuritySection({
 	hp,
 	setHp,
-	certInfo,
-	setCertInfo,
+	ebAppId,
+	onEbAppIdChange,
+	ebKeyLoaded,
+	onEbKeyUpload,
+	ebDirty,
+	onEbSave,
+	onEbReset,
 	onValidPasswordChange,
 	standalone = false,
 }: {
 	hp: boolean;
 	setHp: (v: boolean) => void;
-	certInfo: CertInfo | null;
-	setCertInfo: (v: CertInfo | null) => void;
+	ebAppId: string;
+	onEbAppIdChange: (v: string) => void;
+	ebKeyLoaded: boolean;
+	onEbKeyUpload: (pem: string) => void;
+	ebDirty?: boolean;
+	onEbSave?: () => void;
+	onEbReset?: () => void;
 	onValidPasswordChange?: (hasValidPassword: boolean) => void;
 	standalone?: boolean;
 }) {
@@ -306,42 +318,59 @@ export function SecuritySection({
 				)}
 			</div>
 
-			{/* PSD2 certificate */}
+			{/* Enable Banking credentials */}
 			<div className="border-t border-table-border pt-5">
 				<div
 					className="font-mono text-form-label-text uppercase mb-3"
 					style={{ fontSize: 11, letterSpacing: "0.06em" }}
 				>
-					PSD2 client certificate (QWAC)
+					Enable Banking API credentials
 				</div>
-				<div className="flex flex-col gap-3">
-					{certInfo ? (
-						<div
-							className="font-mono text-page-text-light"
-							style={{ fontSize: 12, letterSpacing: "0.04em" }}
-						>
-							CN={certInfo.cn} · ISSUED BY {certInfo.issuer} · EXPIRES{" "}
-							{certInfo.expires}
-						</div>
-					) : (
-						<div
-							className="font-mono text-page-text-subdued"
-							style={{ fontSize: 12, letterSpacing: "0.04em" }}
-						>
-							No certificate uploaded.
-						</div>
-					)}
+				<FormGrid>
+					<Field label="Application ID" full>
+						<input
+							className={inputCls}
+							value={ebAppId}
+							placeholder="app_xxxxxxxx"
+							onChange={(e) => onEbAppIdChange(e.target.value)}
+						/>
+					</Field>
+				</FormGrid>
+				<div className="flex items-center gap-3 mt-3">
 					<label className="self-start flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-small cursor-pointer text-btn-bare-text hover:bg-btn-bare-bg-hover hover:text-btn-bare-text-hover">
 						<Icons.Upload size={14} />
-						{certInfo ? "Replace .pem" : "Upload .pem"}
+						{ebKeyLoaded
+							? "Replace private key .pem"
+							: "Upload private key .pem"}
 						<input
 							type="file"
-							accept=".pem,.crt,.cer"
+							accept=".pem"
 							className="hidden"
-							onChange={() => setCertInfo(seedCert)}
+							onChange={(e) => {
+								const file = e.target.files?.[0];
+								if (!file) return;
+								const reader = new FileReader();
+								reader.onload = () => onEbKeyUpload(reader.result as string);
+								reader.readAsText(file);
+							}}
 						/>
 					</label>
+					{ebKeyLoaded && (
+						<span
+							className="font-mono text-notice-text"
+							style={{ fontSize: 11, letterSpacing: "0.04em" }}
+						>
+							KEY LOADED
+						</span>
+					)}
 				</div>
+				{standalone && onEbSave && onEbReset && (
+					<SectionActions
+						dirty={!!ebDirty}
+						onSave={onEbSave}
+						onReset={onEbReset}
+					/>
+				)}
 			</div>
 		</div>
 	);
@@ -350,7 +379,7 @@ export function SecuritySection({
 	return (
 		<SectionCard
 			title="Security"
-			desc="Password protection and PSD2 client certificate."
+			desc="Password protection and Enable Banking API credentials."
 		>
 			{inner}
 		</SectionCard>
@@ -1021,26 +1050,28 @@ function SettingsPage() {
 	const { data: kv } = useSettingsQuery();
 	const mutation = useSettingsMutation();
 
+	const defaultEb: SettingsEb = { appId: "", privateKey: "" };
 	const savedActual = kv ? decodeActual(kv) : settingsActual;
 	const savedNotifications = kv
 		? decodeNotifications(kv)
 		: settingsNotifications;
 	const savedSchedule = kv ? decodeSchedule(kv) : settingsSchedule;
+	const savedEb = kv ? decodeEb(kv) : defaultEb;
 
 	const [hp, setHp] = useState(hasPassword);
-	const [certInfo, setCertInfo] = useState<CertInfo | null>(seedCert);
-
 	const [actual, setActual] = useState<SettingsActual>(settingsActual);
 	const [notifications, setNotifications] = useState<SettingsNotifications>(
 		settingsNotifications,
 	);
 	const [schedule, setSchedule] = useState<SettingsSchedule>(settingsSchedule);
+	const [eb, setEb] = useState<SettingsEb>(defaultEb);
 
 	useEffect(() => {
 		if (kv) {
 			setActual(decodeActual(kv));
 			setNotifications(decodeNotifications(kv));
 			setSchedule(decodeSchedule(kv));
+			setEb(decodeEb(kv));
 		}
 	}, [kv]);
 
@@ -1049,14 +1080,15 @@ function SettingsPage() {
 		JSON.stringify(notifications) !== JSON.stringify(savedNotifications);
 	const scheduleDirty =
 		JSON.stringify(schedule) !== JSON.stringify(savedSchedule);
+	const ebDirty = JSON.stringify(eb) !== JSON.stringify(savedEb);
 
-	const bannerStatus = !certInfo ? "err" : !hp ? "warn" : "ok";
+	const bannerStatus = !eb.privateKey ? "err" : !hp ? "warn" : "ok";
 	const bannerMsg =
 		bannerStatus === "err"
-			? "NO PSD2 CERTIFICATE — bank connections are disabled until a certificate is uploaded."
+			? "NO ENABLE BANKING KEY — bank connections are disabled until credentials are configured."
 			: bannerStatus === "warn"
 				? "NO PASSWORD SET — all routes are accessible without authentication."
-				: "ALL SECURE — password active · PSD2 certificate valid.";
+				: "ALL SECURE — password active · Enable Banking key configured.";
 	const BannerIcon = bannerStatus === "ok" ? Icons.Shield : Icons.ShieldOff;
 	const bannerCls =
 		bannerStatus === "err"
@@ -1095,8 +1127,13 @@ function SettingsPage() {
 			<SecuritySection
 				hp={hp}
 				setHp={setHp}
-				certInfo={certInfo}
-				setCertInfo={setCertInfo}
+				ebAppId={eb.appId}
+				onEbAppIdChange={(v) => setEb((s) => ({ ...s, appId: v }))}
+				ebKeyLoaded={!!eb.privateKey}
+				onEbKeyUpload={(pem) => setEb((s) => ({ ...s, privateKey: pem }))}
+				ebDirty={ebDirty}
+				onEbSave={() => mutation.mutate(encodeEb(eb))}
+				onEbReset={() => setEb(savedEb)}
 				standalone
 			/>
 			<ScheduleSection
