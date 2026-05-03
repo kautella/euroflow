@@ -10,6 +10,7 @@ declare module "express-session" {
 		aspspId?: string;
 		aspspName?: string;
 		country?: string;
+		pendingAccounts?: string;
 	}
 }
 
@@ -71,12 +72,30 @@ export function authRouter({ db, eb, redirectUri }: AuthRouterDeps) {
 				})
 				.run();
 			session.nonce = "";
-			res.redirect("/?step=done");
+			res.redirect("/banks?step=done");
 		} else {
 			session.sessionId = result.sessionId;
 			session.consentExpires = result.consentExpires;
-			res.redirect("/?step=pick");
+			session.pendingAccounts = JSON.stringify(result.accounts);
+			res.redirect("/banks?step=pick");
 		}
+	});
+
+	router.get("/pending-accounts", (req, res) => {
+		const session = (req as unknown as { session: Record<string, string> })
+			.session;
+		if (!session.pendingAccounts) {
+			res.status(404).json({ error: "no pending accounts" });
+			return;
+		}
+		res.json({
+			aspspId: session.aspspId,
+			aspspName: session.aspspName,
+			country: session.country,
+			sessionId: session.sessionId,
+			consentExpires: session.consentExpires,
+			accounts: JSON.parse(session.pendingAccounts),
+		});
 	});
 
 	router.post("/select-account", (req, res) => {

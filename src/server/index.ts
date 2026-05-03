@@ -6,6 +6,7 @@ import { createDb } from "./db/client";
 import { EnableBankingClient } from "./lib/enable-banking";
 import { SettingsStore } from "./lib/settings-store";
 import { authRouter } from "./routes/auth";
+import { banksRouter } from "./routes/banks";
 import { settingsRouter } from "./routes/settings";
 
 const DATA_DIR = process.env.DATA_DIR ?? "./data";
@@ -44,6 +45,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/settings", settingsRouter(store));
 app.use("/api/auth", authRouter({ db, eb, redirectUri: REDIRECT_URI }));
+app.use("/api/banks", banksRouter({ db, eb }));
 
 const server = app.listen(PORT, () => {
 	log.info({ port: PORT }, "server listening");
