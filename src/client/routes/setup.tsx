@@ -1,6 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Icons } from "../components/Icon";
+import { useSettingsMutation } from "../hooks/useSettings";
+import {
+	encodeActual,
+	encodeNotifications,
+	encodeSchedule,
+} from "../lib/settings-codec";
 import type { CertInfo } from "../seed/banks";
 import {
 	type SettingsActual,
@@ -40,7 +46,19 @@ function SetupWizard() {
 	);
 	const [schedule, setSchedule] = useState<SettingsSchedule>(settingsSchedule);
 
-	const finish = () => navigate({ to: "/banks" });
+	const mutation = useSettingsMutation();
+
+	const finish = () => {
+		mutation.mutate(
+			{
+				...encodeSchedule(schedule),
+				...encodeNotifications(notifications),
+				...encodeActual(actual),
+				is_configured: "true",
+			},
+			{ onSuccess: () => navigate({ to: "/banks" }) },
+		);
+	};
 
 	return (
 		<div

@@ -4,7 +4,16 @@ import { Icons } from "../components/Icon";
 import { ConfirmModal } from "../components/Modal";
 import { StatusPill } from "../components/StatusPill";
 import { useBanners } from "../contexts/BannerContext";
+import { useSettingsMutation, useSettingsQuery } from "../hooks/useSettings";
 import { nextRunFormatted, scheduleToCron } from "../lib/schedule";
+import {
+	decodeActual,
+	decodeNotifications,
+	decodeSchedule,
+	encodeActual,
+	encodeNotifications,
+	encodeSchedule,
+} from "../lib/settings-codec";
 import { type CertInfo, cert as seedCert } from "../seed/banks";
 import {
 	hasPassword,
@@ -1009,6 +1018,14 @@ function AdvancedSection() {
 
 function SettingsPage() {
 	const { dismissed, dismiss } = useBanners();
+	const { data: kv } = useSettingsQuery();
+	const mutation = useSettingsMutation();
+
+	const savedActual = kv ? decodeActual(kv) : settingsActual;
+	const savedNotifications = kv
+		? decodeNotifications(kv)
+		: settingsNotifications;
+	const savedSchedule = kv ? decodeSchedule(kv) : settingsSchedule;
 
 	const [hp, setHp] = useState(hasPassword);
 	const [certInfo, setCertInfo] = useState<CertInfo | null>(seedCert);
@@ -1019,11 +1036,19 @@ function SettingsPage() {
 	);
 	const [schedule, setSchedule] = useState<SettingsSchedule>(settingsSchedule);
 
-	const actualDirty = JSON.stringify(actual) !== JSON.stringify(settingsActual);
+	useEffect(() => {
+		if (kv) {
+			setActual(decodeActual(kv));
+			setNotifications(decodeNotifications(kv));
+			setSchedule(decodeSchedule(kv));
+		}
+	}, [kv]);
+
+	const actualDirty = JSON.stringify(actual) !== JSON.stringify(savedActual);
 	const notificationsDirty =
-		JSON.stringify(notifications) !== JSON.stringify(settingsNotifications);
+		JSON.stringify(notifications) !== JSON.stringify(savedNotifications);
 	const scheduleDirty =
-		JSON.stringify(schedule) !== JSON.stringify(settingsSchedule);
+		JSON.stringify(schedule) !== JSON.stringify(savedSchedule);
 
 	const bannerStatus = !certInfo ? "err" : !hp ? "warn" : "ok";
 	const bannerMsg =
@@ -1078,24 +1103,24 @@ function SettingsPage() {
 				value={schedule}
 				onChange={setSchedule}
 				dirty={scheduleDirty}
-				onSave={() => {}}
-				onReset={() => setSchedule(settingsSchedule)}
+				onSave={() => mutation.mutate(encodeSchedule(schedule))}
+				onReset={() => setSchedule(savedSchedule)}
 				standalone
 			/>
 			<NotificationsSection
 				value={notifications}
 				onChange={setNotifications}
 				dirty={notificationsDirty}
-				onSave={() => {}}
-				onReset={() => setNotifications(settingsNotifications)}
+				onSave={() => mutation.mutate(encodeNotifications(notifications))}
+				onReset={() => setNotifications(savedNotifications)}
 				standalone
 			/>
 			<ActualSection
 				value={actual}
 				onChange={setActual}
 				dirty={actualDirty}
-				onSave={() => {}}
-				onReset={() => setActual(settingsActual)}
+				onSave={() => mutation.mutate(encodeActual(actual))}
+				onReset={() => setActual(savedActual)}
 				standalone
 			/>
 			<AdvancedSection />

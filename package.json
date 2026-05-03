@@ -25,6 +25,7 @@
 		"@radix-ui/react-dialog": "^1.1.15",
 		"@radix-ui/react-tooltip": "^1.2.8",
 		"@tailwindcss/vite": "^4.2.4",
+		"@tanstack/react-query": "^5.100.8",
 		"@tanstack/react-router": "^1.168.26",
 		"@tanstack/router-vite-plugin": "^1.166.44",
 		"better-sqlite3": "^12.9.0",
