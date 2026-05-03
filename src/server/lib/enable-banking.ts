@@ -10,6 +10,18 @@ export type AspspInfo = {
 	maxDays: number;
 };
 
+export type AuthAccount = {
+	name: string;
+	type: string;
+	iban?: string;
+};
+
+export type AuthResult = {
+	sessionId: string;
+	consentExpires: string;
+	accounts: AuthAccount[];
+};
+
 type Config = {
 	applicationId: string;
 	privateKeyPem: string;
@@ -54,6 +66,58 @@ export class EnableBankingClient {
 		});
 		if (!res.ok) throw new Error(`Enable Banking ${res.status}: ${path}`);
 		return res.json() as Promise<T>;
+	}
+
+	private async post<T>(path: string, body: unknown): Promise<T> {
+		const token = await this.makeJwt();
+		const res = await fetch(new URL(path, this.baseUrl).toString(), {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${token}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(body),
+		});
+		if (!res.ok) throw new Error(`Enable Banking ${res.status}: ${path}`);
+		return res.json() as Promise<T>;
+	}
+
+	async startAuth(params: {
+		aspspId: string;
+		redirectUri: string;
+		state: string;
+	}): Promise<string> {
+		const body = await this.post<{ url: string }>("/auth", {
+			aspsp: { name: params.aspspId, country: "" },
+			redirect_url: params.redirectUri,
+			state: params.state,
+			psu_type: "personal",
+			credentials_type: "redirect",
+		});
+		return body.url;
+	}
+
+	async completeAuth(params: {
+		code: string;
+		aspspId: string;
+	}): Promise<AuthResult> {
+		const body = await this.post<{
+			session_id: string;
+			valid_until: string;
+			accounts: { details?: { iban?: string }; identification_hash: string }[];
+		}>("/sessions", {
+			code: params.code,
+			aspsp: { name: params.aspspId, country: "" },
+		});
+		return {
+			sessionId: body.session_id,
+			consentExpires: body.valid_until,
+			accounts: body.accounts.map((a) => ({
+				name: a.identification_hash,
+				type: "checking",
+				iban: a.details?.iban,
+			})),
+		};
 	}
 
 	async getBanks(country?: string): Promise<AspspInfo[]> {
