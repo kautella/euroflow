@@ -1,4 +1,4 @@
-import { generateKeyPair, importPKCS8, jwtVerify } from "jose";
+import { generateKeyPair, jwtVerify } from "jose";
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { EnableBankingClient } from "./enable-banking";
 
@@ -36,9 +36,9 @@ describe("EnableBankingClient", () => {
 			string,
 			RequestInit,
 		];
-		const token = (init.headers as Record<string, string>)[
-			"Authorization"
-		].replace("Bearer ", "");
+		const token = (
+			init.headers as Record<string, string>
+		).Authorization.replace("Bearer ", "");
 
 		const { payload, protectedHeader } = await jwtVerify(token, publicKey);
 		expect(protectedHeader.alg).toBe("RS256");
@@ -109,6 +109,7 @@ describe("EnableBankingClient", () => {
 
 		// Expire the cache
 		// @ts-expect-error accessing private field in test
+		// biome-ignore lint/style/noNonNullAssertion: cache is guaranteed set after getBanks()
 		client.banksCache!.expiresAt = Date.now() - 1;
 		await client.getBanks();
 
