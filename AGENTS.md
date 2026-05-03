@@ -47,7 +47,7 @@ drizzle/      Generated migration files (drizzle-kit output)
 - **REST API** — Express routes under `/api/*`; request/response shapes defined as Zod schemas in `src/shared/`; infer TypeScript types from schemas with `z.infer<>`
 - **Dev setup** — `pnpm dev` runs Vite (port 3000) and Express (port 3001) concurrently; Vite proxies `/api/*` to `localhost:3001`; Express is run with `tsx watch` in dev
 - **Terminal aesthetic** — mono font on every number, date, IBAN; ISO timestamps everywhere; visible grid lines in tables
-- **Wizard shares components with Settings** — wizard passes `embedded` prop to suppress Save/Reset buttons; never duplicate forms
+- **Wizard shares components with Settings** — shared section components (`SecuritySection`, `ActualSection`, `NotificationsSection`, `ScheduleSection`) accept a `standalone` prop (default `false`). Wizard omits it (no card wrapper, no Save/Reset); Settings page passes `standalone` to get the full card. Never duplicate the forms.
 - **Sync guard** — `is_syncing` boolean (in-memory); manual trigger returns 409 if already running; cron tick skips silently
 
 ## Conventions
